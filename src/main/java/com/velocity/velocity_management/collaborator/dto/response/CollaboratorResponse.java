@@ -1,9 +1,18 @@
 package com.velocity.velocity_management.collaborator.dto.response;
 
 import com.velocity.velocity_management.collaborator.enums.Profile;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CollaboratorResponse {
 
 
