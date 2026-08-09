@@ -21,12 +21,17 @@ public class CollaboratorMapper {
 
 
     public CollaboratorResponse toResponse(Collaborator collaborator) {
+
         CollaboratorResponse response = new CollaboratorResponse();
 
         response.setId(collaborator.getId());
+        response.setMatricule(collaborator.getMatricule());
         response.setFirstName(collaborator.getFirstName());
         response.setLastName(collaborator.getLastName());
         response.setProfile(collaborator.getProfile());
+        response.setActive(collaborator.isActive());
+        response.setCreatedAt(collaborator.getCreatedAt());
+        response.setUpdatedAt(collaborator.getUpdatedAt());
 
         return response;
     }
