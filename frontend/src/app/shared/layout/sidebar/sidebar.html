@@ -1,0 +1,29 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <div class="sidebar__brand">
+    <span class="sidebar__mark">V</span>
+    @if (!collapsed()) {
+      <span class="sidebar__name">Velocity</span>
+    }
+  </div>
+
+  <nav class="sidebar__nav">
+    @for (item of navItems; track item.path) {
+      <a
+        class="sidebar__link"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path [attr.d]="item.icon"></path>
+        </svg>
+        @if (!collapsed()) {
+          <span>{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <button class="sidebar__toggle" (click)="toggle()" type="button">
+    {{ collapsed() ? '»' : '« Collapse' }}
+  </button>
+</aside>

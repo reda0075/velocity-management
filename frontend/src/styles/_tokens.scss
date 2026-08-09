@@ -1,0 +1,58 @@
+// src/styles/_tokens.scss
+// Design tokens for Velocity Management.
+// Keep all raw color/spacing/type values here — components should
+// reference these variables, never hardcode hex codes or px values.
+
+:root {
+  // ---- Color: surfaces & text ----
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-border: #e3e6eb;
+  --color-border-strong: #cbd0d9;
+  --color-text: #171b24;
+  --color-text-muted: #5b6472;
+  --color-text-faint: #8992a1;
+
+  // ---- Color: brand & actions ----
+  --color-primary: #2f4ee0;
+  --color-primary-hover: #2540c4;
+  --color-primary-dark: #1f35a6;
+  --color-primary-tint: #eaeeff;
+
+  // ---- Color: status ----
+  --color-success: #12805c;
+  --color-success-tint: #e6f5ef;
+  --color-danger: #c4342f;
+  --color-danger-tint: #fbeaea;
+  --color-warning: #b4740e;
+  --color-warning-tint: #fbf1e0;
+
+  // ---- Color: data / KPI emphasis (used sparingly — velocity ratio, etc.) ----
+  --color-kpi: #0e7c86;
+  --color-kpi-tint: #e4f4f5;
+
+  // ---- Typography ----
+  --font-display: 'Manrope', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+
+  // ---- Spacing scale (8px base) ----
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  // ---- Layout ----
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  // ---- Elevation ----
+  --shadow-sm: 0 1px 2px rgba(23, 27, 36, 0.06);
+  --shadow-md: 0 4px 12px rgba(23, 27, 36, 0.08);
+}
