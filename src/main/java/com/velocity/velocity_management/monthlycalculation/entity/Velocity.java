@@ -43,7 +43,8 @@ public class Velocity {
     @OneToMany(
             mappedBy = "velocity",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
     )
     private List<VelocityRitual> rituals = new ArrayList<>();
 
