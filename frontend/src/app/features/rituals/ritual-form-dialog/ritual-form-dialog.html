@@ -1,0 +1,41 @@
+<app-modal [title]="isEditMode ? 'Edit Ritual' : 'Add Ritual'" (closed)="closed.emit()">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="ritual-form">
+
+    <label class="field">
+      <span class="field__label">Ritual Name</span>
+      <input class="field__input" type="text" formControlName="name" placeholder="e.g. Daily Standup" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        @if (form.controls.name.hasError('required')) {
+          <span class="field__error">Ritual name is required.</span>
+        }
+        @if (form.controls.name.hasError('maxlength')) {
+          <span class="field__error">Ritual name must not exceed 30 characters.</span>
+        }
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Duration (hours)</span>
+      <input class="field__input" type="number" formControlName="durationHours" placeholder="e.g. 0.5" step="0.1" min="0" />
+      @if (form.controls.durationHours.invalid && form.controls.durationHours.touched) {
+        @if (form.controls.durationHours.hasError('required')) {
+          <span class="field__error">Duration is required.</span>
+        }
+        @if (form.controls.durationHours.hasError('min')) {
+          <span class="field__error">Duration must be greater than 0.</span>
+        }
+      }
+    </label>
+
+    @if (backendError()) {
+      <div class="ritual-form__banner">{{ backendError() }}</div>
+    }
+
+    <div class="ritual-form__actions">
+      <button class="btn btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Ritual') }}
+      </button>
+    </div>
+  </form>
+</app-modal>

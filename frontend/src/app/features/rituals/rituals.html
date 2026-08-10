@@ -1,0 +1,75 @@
+<div class="page">
+  <div class="page__header">
+    <div>
+      <h2>Rituals</h2>
+      <p class="page__description">Manage team rituals and their durations.</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Ritual</button>
+  </div>
+
+  <div class="card table-card">
+    @if (loading()) {
+      <div class="state state--loading">Loading rituals...</div>
+    } @else if (loadError()) {
+      <div class="state state--error">
+        <p>{{ loadError() }}</p>
+        <button class="btn btn-secondary" type="button" (click)="load()">Retry</button>
+      </div>
+    } @else if (rituals().length === 0) {
+      <div class="state state--empty">
+        <p>No rituals yet.</p>
+        <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Ritual</button>
+      </div>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Duration</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rituals(); track r.id) {
+            <tr>
+              <td>{{ r.name }}</td>
+              <td class="figure">{{ r.durationHours }} h</td>
+              <td class="figure">{{ r.createdAt | date: 'short' }}</td>
+              <td class="figure">{{ r.updatedAt | date: 'short' }}</td>
+              <td class="table__actions-cell">
+                <button class="menu-trigger" type="button" (click)="toggleMenu(r.id)">⋮</button>
+                @if (openMenuId() === r.id) {
+                  <div class="menu">
+                    <button type="button" (click)="openEditDialog(r)">Edit</button>
+                    <button type="button" class="menu__danger" (click)="askDelete(r)">Delete</button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>
+
+@if (showFormDialog()) {
+  <app-ritual-form-dialog
+    [ritual]="editingRitual()"
+    (saved)="onDialogSaved()"
+    (closed)="showFormDialog.set(false)"
+  ></app-ritual-form-dialog>
+}
+
+@if (deleteTarget()) {
+  <app-confirm-dialog
+    title="Delete ritual"
+    [message]="'Are you sure you want to delete ' + deleteTarget()!.name + '? This cannot be undone.'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="deleteTarget.set(null)"
+  ></app-confirm-dialog>
+}

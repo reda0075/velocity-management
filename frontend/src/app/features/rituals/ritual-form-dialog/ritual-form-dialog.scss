@@ -1,0 +1,17 @@
+.ritual-form {
+  &__banner {
+    background: var(--color-danger-tint);
+    color: var(--color-danger);
+    font-size: 13px;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-4);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+}
