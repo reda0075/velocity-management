@@ -1,0 +1,93 @@
+<div class="page">
+  <div class="page__header">
+    <div>
+      <h2>Velocities</h2>
+      <p class="page__description">Manage monthly velocity calculations.</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
+  </div>
+
+  <div class="card table-card">
+    @if (loading()) {
+      <div class="state state--loading">Loading velocities...</div>
+    } @else if (loadError()) {
+      <div class="state state--error">
+        <p>{{ loadError() }}</p>
+        <button class="btn btn-secondary" type="button" (click)="load()">Retry</button>
+      </div>
+    } @else if (velocities().length === 0) {
+      <div class="state state--empty">
+        <p>No velocity calculations yet.</p>
+        <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
+      </div>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Collaborator</th>
+            <th>Year</th>
+            <th>Month</th>
+            <th>Working Days</th>
+            <th>Velocity</th>
+            <th>Ritual Time</th>
+            <th>Effective Days</th>
+            <th>Velocity Ratio</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of velocities(); track v.id) {
+            <tr>
+              <td>{{ getCollaboratorName(v.collaboratorId) }}</td>
+              <td class="figure">{{ v.year }}</td>
+              <td>{{ monthName(v.month) }}</td>
+              <td class="figure">{{ v.workingDays }}</td>
+              <td class="figure">{{ v.velocity }}</td>
+              <td class="figure">{{ v.totalRitualTimeHours | number: '1.2-2' }} h</td>
+              <td class="figure">{{ v.effectiveWorkingDays | number: '1.2-2' }}</td>
+              <td>
+                <span class="badge badge-neutral velocity-ratio">{{ v.velocityRatio | number: '1.2-2' }}</span>
+              </td>
+              <td class="table__actions-cell">
+                <button class="menu-trigger" type="button" (click)="toggleMenu(v.id)">⋮</button>
+                @if (openMenuId() === v.id) {
+                  <div class="menu">
+                    <button type="button" (click)="openViewDialog(v)">View</button>
+                    <button type="button" (click)="openEditDialog(v)">Edit</button>
+                    <button type="button" class="menu__danger" (click)="askDelete(v)">Delete</button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>
+
+@if (showFormDialog()) {
+  <app-velocity-form-dialog
+    [velocity]="editingVelocity()"
+    (saved)="onDialogSaved()"
+    (closed)="showFormDialog.set(false)"
+  ></app-velocity-form-dialog>
+}
+
+@if (viewVelocityId()) {
+  <app-velocity-view-dialog
+    [velocityId]="viewVelocityId()!"
+    (closed)="viewVelocityId.set(null)"
+  ></app-velocity-view-dialog>
+}
+
+@if (deleteTarget()) {
+  <app-confirm-dialog
+    title="Delete velocity"
+    [message]="'Are you sure you want to delete the velocity calculation for ' + monthName(deleteTarget()!.month) + ' ' + deleteTarget()!.year + '? This cannot be undone.'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="deleteTarget.set(null)"
+  ></app-confirm-dialog>
+}

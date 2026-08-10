@@ -1,0 +1,51 @@
+.vel-form {
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+
+  &__section {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+
+  &__section-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+  }
+
+  &__rituals-table {
+    margin-bottom: var(--space-3);
+  }
+
+  &__add-ritual {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-end;
+  }
+
+  &__occurrences {
+    width: 120px;
+  }
+
+  &__banner {
+    background: var(--color-danger-tint);
+    color: var(--color-danger);
+    font-size: 13px;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+}

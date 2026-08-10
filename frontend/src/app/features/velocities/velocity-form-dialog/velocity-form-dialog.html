@@ -1,0 +1,120 @@
+<app-modal [title]="isEditMode ? 'Edit Velocity' : 'New Velocity Calculation'" (closed)="closed.emit()">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="vel-form">
+
+    <div class="vel-form__row">
+      <label class="field">
+        <span class="field__label">Collaborator</span>
+        <select class="field__input" formControlName="collaboratorId">
+          <option value="" disabled>Select a collaborator</option>
+          @for (c of collaborators(); track c.id) {
+            <option [value]="c.id">{{ c.firstName }} {{ c.lastName }} ({{ c.matricule }})</option>
+          }
+        </select>
+        @if (form.controls['collaboratorId'].invalid && form.controls['collaboratorId'].touched) {
+          <span class="field__error">Collaborator is required.</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Year</span>
+        <input class="field__input" type="number" formControlName="year" />
+        @if (form.controls['year'].invalid && form.controls['year'].touched) {
+          <span class="field__error">Year must be 2000 or later.</span>
+        }
+      </label>
+    </div>
+
+    <div class="vel-form__row">
+      <label class="field">
+        <span class="field__label">Month</span>
+        <select class="field__input" formControlName="month">
+          <option value="" disabled>Select a month</option>
+          <option [value]="1">January</option>
+          <option [value]="2">February</option>
+          <option [value]="3">March</option>
+          <option [value]="4">April</option>
+          <option [value]="5">May</option>
+          <option [value]="6">June</option>
+          <option [value]="7">July</option>
+          <option [value]="8">August</option>
+          <option [value]="9">September</option>
+          <option [value]="10">October</option>
+          <option [value]="11">November</option>
+          <option [value]="12">December</option>
+        </select>
+        @if (form.controls['month'].invalid && form.controls['month'].touched) {
+          <span class="field__error">Month is required.</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Working Days</span>
+        <input class="field__input" type="number" formControlName="workingDays" />
+        @if (form.controls['workingDays'].invalid && form.controls['workingDays'].touched) {
+          <span class="field__error">Working days must be at least 1.</span>
+        }
+      </label>
+    </div>
+
+    <label class="field">
+      <span class="field__label">Velocity</span>
+      <input class="field__input" type="number" formControlName="velocity" step="0.01" />
+      @if (form.controls['velocity'].invalid && form.controls['velocity'].touched) {
+        <span class="field__error">Velocity must be greater than 0.</span>
+      }
+    </label>
+
+    <div class="vel-form__section">
+      <h3 class="vel-form__section-title">Rituals</h3>
+
+      @if (formattedRituals().length > 0) {
+        <table class="table vel-form__rituals-table">
+          <thead>
+            <tr>
+              <th>Ritual</th>
+              <th>Duration</th>
+              <th>Occurrences</th>
+              <th>Total Time</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of formattedRituals(); track r.ritualId) {
+              <tr>
+                <td>{{ getRitualName(r.ritualId) }}</td>
+                <td class="figure">{{ getRitualDuration(r.ritualId) }} h</td>
+                <td class="figure">{{ r.occurrences }}</td>
+                <td class="figure">{{ (getRitualDuration(r.ritualId) * r.occurrences).toFixed(2) }} h</td>
+                <td class="table__actions-cell">
+                  <button class="menu-trigger" type="button" (click)="removeRitual(r.ritualId)">×</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <div class="vel-form__add-ritual">
+        <select class="field__input" [value]="newRitualId()" (change)="newRitualId.set(+$any($event.target).value)">
+          <option value="" disabled>Select a ritual</option>
+          @for (r of rituals(); track r.id) {
+            <option [value]="r.id">{{ r.name }} ({{ r.durationHours }} h)</option>
+          }
+        </select>
+        <input class="field__input vel-form__occurrences" type="number" [value]="newOccurrences()" (input)="newOccurrences.set(+$any($event.target).value)" placeholder="Occurrences" min="1" />
+        <button class="btn btn-secondary" type="button" (click)="addRitual()">Add Ritual</button>
+      </div>
+    </div>
+
+    @if (backendError()) {
+      <div class="vel-form__banner">{{ backendError() }}</div>
+    }
+
+    <div class="vel-form__actions">
+      <button class="btn btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Calculate') }}
+      </button>
+    </div>
+  </form>
+</app-modal>
