@@ -44,4 +44,8 @@
   &__body {
     padding: var(--space-5);
   }
+
+  &--wide {
+    width: 720px;
+  }
 }

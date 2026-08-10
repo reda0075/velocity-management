@@ -1,4 +1,4 @@
-<app-modal [title]="isEditMode ? 'Edit Velocity' : 'New Velocity Calculation'" (closed)="closed.emit()">
+<app-modal [title]="isEditMode ? 'Edit Velocity' : 'New Velocity Calculation'" [wide]="true" (closed)="closed.emit()">
   <form [formGroup]="form" (ngSubmit)="submit()" class="vel-form">
 
     <div class="vel-form__row">
@@ -95,7 +95,7 @@
       }
 
       <div class="vel-form__add-ritual">
-        <select class="field__input" [value]="newRitualId()" (change)="newRitualId.set(+$any($event.target).value)">
+        <select #ritualSelect class="field__input" [value]="newRitualId()" (change)="newRitualId.set(+$any($event.target).value)">
           <option value="" disabled>Select a ritual</option>
           @for (r of rituals(); track r.id) {
             <option [value]="r.id">{{ r.name }} ({{ r.durationHours }} h)</option>

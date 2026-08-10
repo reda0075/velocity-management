@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -23,6 +23,8 @@ export class VelocityFormDialog implements OnChanges {
   @Input() velocity: Velocity | null = null;
   @Output() saved = new EventEmitter<void>();
   @Output() closed = new EventEmitter<void>();
+
+  @ViewChild('ritualSelect') ritualSelectRef!: ElementRef<HTMLSelectElement>;
 
   private fb = inject(FormBuilder);
   private api = inject(VelocityApi);
@@ -108,6 +110,7 @@ export class VelocityFormDialog implements OnChanges {
     this.formattedRituals.update(list => [...list, { ritualId, occurrences }]);
     this.newRitualId.set(null);
     this.newOccurrences.set(null);
+    this.ritualSelectRef.nativeElement.value = '';
   }
 
   removeRitual(ritualId: number): void {
