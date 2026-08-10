@@ -47,7 +47,6 @@ export class VelocityFormDialog implements OnChanges {
     velocity: [null, [Validators.required, Validators.min(0.01)]]
   });
 
-  newRitualId = signal<number | null>(null);
   newOccurrences = signal<number | null>(null);
 
   get isEditMode(): boolean {
@@ -98,7 +97,7 @@ export class VelocityFormDialog implements OnChanges {
   }
 
   addRitual(): void {
-    const ritualId = this.newRitualId();
+    const ritualId = this.ritualSelectRef.nativeElement.value ? +this.ritualSelectRef.nativeElement.value : null;
     const occurrences = this.newOccurrences();
     if (!ritualId || !occurrences || occurrences < 1) return;
 
@@ -108,9 +107,8 @@ export class VelocityFormDialog implements OnChanges {
     }
 
     this.formattedRituals.update(list => [...list, { ritualId, occurrences }]);
-    this.newRitualId.set(null);
-    this.newOccurrences.set(null);
     this.ritualSelectRef.nativeElement.value = '';
+    this.newOccurrences.set(null);
   }
 
   removeRitual(ritualId: number): void {
