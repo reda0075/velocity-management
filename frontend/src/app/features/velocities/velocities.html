@@ -30,6 +30,7 @@
             <th>Working Days</th>
             <th>Velocity</th>
             <th>Ritual Time</th>
+            <th>Ritual Days</th>
             <th>Effective Days</th>
             <th>Velocity Ratio</th>
             <th></th>
@@ -44,6 +45,7 @@
               <td class="figure">{{ v.workingDays }}</td>
               <td class="figure">{{ v.velocity }}</td>
               <td class="figure">{{ v.totalRitualTimeHours | number: '1.2-2' }} h</td>
+              <td class="figure">{{ v.ritualTimeDays | number: '1.2-2' }}</td>
               <td class="figure">{{ v.effectiveWorkingDays | number: '1.2-2' }}</td>
               <td>
                 <span class="badge badge-neutral velocity-ratio">{{ v.velocityRatio | number: '1.2-2' }}</span>
