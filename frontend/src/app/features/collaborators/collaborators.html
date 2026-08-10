@@ -1,0 +1,98 @@
+<div class="page">
+  <div class="page__header">
+    <div>
+      <h2>Collaborators</h2>
+      <p class="page__description">Manage team members and their profiles.</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Collaborator</button>
+  </div>
+
+  <div class="card table-card">
+    @if (loading()) {
+      <div class="state state--loading">Loading collaborators...</div>
+    } @else if (loadError()) {
+      <div class="state state--error">
+        <p>{{ loadError() }}</p>
+        <button class="btn btn-secondary" type="button" (click)="load()">Retry</button>
+      </div>
+    } @else if (collaborators().length === 0) {
+      <div class="state state--empty">
+        <p>No collaborators yet.</p>
+        <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Collaborator</button>
+      </div>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Matricule</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Profile</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of collaborators(); track c.id) {
+            <tr>
+              <td class="figure">{{ c.matricule }}</td>
+              <td>{{ c.firstName }}</td>
+              <td>{{ c.lastName }}</td>
+              <td>{{ c.profile }}</td>
+              <td>
+                @if (c.active) {
+                  <span class="badge badge-success">Active</span>
+                } @else {
+                  <span class="badge badge-danger">Inactive</span>
+                }
+              </td>
+              <td class="table__actions-cell">
+                <button class="menu-trigger" type="button" (click)="toggleMenu(c.id)">⋮</button>
+                @if (openMenuId() === c.id) {
+                  <div class="menu">
+                    <button type="button" (click)="openEditDialog(c)">Edit</button>
+                    @if (c.active) {
+                      <button type="button" (click)="askDeactivate(c)">Deactivate</button>
+                    } @else {
+                      <button type="button" (click)="activate(c)">Activate</button>
+                    }
+                    <button type="button" class="menu__danger" (click)="askDelete(c)">Delete</button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>
+
+@if (showFormDialog()) {
+  <app-collaborator-form-dialog
+    [collaborator]="editingCollaborator()"
+    (saved)="onDialogSaved()"
+    (closed)="showFormDialog.set(false)"
+  ></app-collaborator-form-dialog>
+}
+
+@if (deactivateTarget()) {
+  <app-confirm-dialog
+    title="Deactivate collaborator"
+    [message]="'Are you sure you want to deactivate ' + deactivateTarget()!.firstName + ' ' + deactivateTarget()!.lastName + '?'"
+    confirmLabel="Deactivate"
+    (confirmed)="confirmDeactivate()"
+    (cancelled)="deactivateTarget.set(null)"
+  ></app-confirm-dialog>
+}
+
+@if (deleteTarget()) {
+  <app-confirm-dialog
+    title="Delete collaborator"
+    [message]="'Are you sure you want to delete ' + deleteTarget()!.firstName + ' ' + deleteTarget()!.lastName + '? This cannot be undone.'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="deleteTarget.set(null)"
+  ></app-confirm-dialog>
+}

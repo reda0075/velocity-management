@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-rituals',
   standalone: true,
   template: `
     <div class="card placeholder">
-      <h2>Dashboard</h2>
-      <p>This page will show collaborator, ritual, and velocity summaries in Phase 5.</p>
+      <h2>Rituals</h2>
+      <p>This page will implement ritual CRUD in Phase 3.</p>
     </div>
   `,
   styles: [`

@@ -1,0 +1,48 @@
+<app-modal [title]="isEditMode ? 'Edit Collaborator' : 'Add Collaborator'" (closed)="closed.emit()">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="collab-form">
+
+    @if (isEditMode) {
+      <p class="collab-form__meta">Matricule: <span class="figure">{{ collaborator!.matricule }}</span></p>
+    }
+
+    <label class="field">
+      <span class="field__label">First Name</span>
+      <input class="field__input" type="text" formControlName="firstName" placeholder="e.g. Reda" />
+      @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
+        <span class="field__error">First name is required.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Last Name</span>
+      <input class="field__input" type="text" formControlName="lastName" placeholder="e.g. Elhamdaoui" />
+      @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+        <span class="field__error">Last name is required.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Profile</span>
+      <select class="field__input" formControlName="profile">
+        <option value="" disabled>Select a profile</option>
+        @for (p of profiles; track p) {
+          <option [value]="p">{{ p }}</option>
+        }
+      </select>
+      @if (form.controls.profile.invalid && form.controls.profile.touched) {
+        <span class="field__error">Profile is required.</span>
+      }
+    </label>
+
+    @if (backendError()) {
+      <div class="collab-form__banner">{{ backendError() }}</div>
+    }
+
+    <div class="collab-form__actions">
+      <button class="btn btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Collaborator') }}
+      </button>
+    </div>
+  </form>
+</app-modal>

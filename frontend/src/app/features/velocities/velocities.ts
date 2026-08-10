@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-velocities',
   standalone: true,
   template: `
     <div class="card placeholder">
-      <h2>Dashboard</h2>
-      <p>This page will show collaborator, ritual, and velocity summaries in Phase 5.</p>
+      <h2>Velocities</h2>
+      <p>This page will implement velocity calculations in Phase 4.</p>
     </div>
   `,
   styles: [`
