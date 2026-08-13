@@ -110,6 +110,11 @@ button {
     background: var(--color-primary-tint);
     color: var(--color-primary-dark);
   }
+
+  &-warning {
+    background: var(--color-warning-tint);
+    color: var(--color-warning);
+  }
 }
 
 .btn-danger {

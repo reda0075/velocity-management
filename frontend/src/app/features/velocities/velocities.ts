@@ -2,7 +2,7 @@ import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { VelocityApi } from '../../core/services/velocity-api';
-import { Velocity } from '../../core/models/velocity';
+import { Velocity, VelocityStatus } from '../../core/models/velocity';
 import { CollaboratorApi } from '../../core/services/collaborator-api';
 import { Collaborator } from '../../core/models/collaborator';
 import { Toast } from '../../core/services/toast';
@@ -28,11 +28,14 @@ export class Velocities implements OnInit {
   loading = signal(true);
   loadError = signal<string | null>(null);
 
+  validatingId = signal<number | null>(null);
+
   showFormDialog = signal(false);
   editingVelocity = signal<Velocity | null>(null);
   viewVelocityId = signal<number | null>(null);
   openMenuId = signal<number | null>(null);
   deleteTarget = signal<Velocity | null>(null);
+  validateTarget = signal<Velocity | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -123,6 +126,30 @@ export class Velocities implements OnInit {
     this.load();
   }
 
+  askValidate(v: Velocity): void {
+    this.closeMenu();
+    this.validateTarget.set(v);
+  }
+
+  confirmValidate(): void {
+    const target = this.validateTarget();
+    if (!target) return;
+    this.validatingId.set(target.id);
+    this.api.validate(target.id).subscribe({
+      next: () => {
+        this.toast.success('Velocity calculation validated.');
+        this.validateTarget.set(null);
+        this.validatingId.set(null);
+        this.load();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toast.error(extractErrorMessage(err, 'Could not validate velocity.'));
+        this.validateTarget.set(null);
+        this.validatingId.set(null);
+      }
+    });
+  }
+
   askDelete(v: Velocity): void {
     this.closeMenu();
     this.deleteTarget.set(v);
@@ -147,5 +174,9 @@ export class Velocities implements OnInit {
   monthName(month: number): string {
     const date = new Date(2000, month - 1, 1);
     return date.toLocaleString('default', { month: 'long' });
+  }
+
+  statusLabel(status: VelocityStatus): string {
+    return status === 'PENDING_VALIDATION' ? 'Pending validation' : 'Validated';
   }
 }

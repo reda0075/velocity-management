@@ -33,6 +33,7 @@
             <th>Ritual Days</th>
             <th>Effective Days</th>
             <th>Velocity Ratio</th>
+            <th>Status</th>
             <th></th>
           </tr>
         </thead>
@@ -50,12 +51,22 @@
               <td>
                 <span class="badge badge-neutral velocity-ratio">{{ v.velocityRatio | number: '1.2-2' }}</span>
               </td>
+              <td>
+                @if (v.status === 'PENDING_VALIDATION') {
+                  <span class="badge badge-warning">Pending validation</span>
+                } @else {
+                  <span class="badge badge-success">Validated</span>
+                }
+              </td>
               <td class="table__actions-cell">
                 <button class="menu-trigger" type="button" (click)="toggleMenu(v.id)">⋮</button>
                 @if (openMenuId() === v.id) {
                   <div class="menu">
                     <button type="button" (click)="openViewDialog(v)">View</button>
                     <button type="button" (click)="openEditDialog(v)">Edit</button>
+                    @if (v.status === 'PENDING_VALIDATION') {
+                      <button type="button" (click)="askValidate(v)">Validate</button>
+                    }
                     <button type="button" class="menu__danger" (click)="askDelete(v)">Delete</button>
                   </div>
                 }
@@ -91,5 +102,15 @@
     [danger]="true"
     (confirmed)="confirmDelete()"
     (cancelled)="deleteTarget.set(null)"
+  ></app-confirm-dialog>
+}
+
+@if (validateTarget()) {
+  <app-confirm-dialog
+    title="Validate velocity"
+    [message]="'Are you sure you want to validate the velocity calculation for ' + monthName(validateTarget()!.month) + ' ' + validateTarget()!.year + '?'"
+    confirmLabel="Validate"
+    (confirmed)="confirmValidate()"
+    (cancelled)="validateTarget.set(null)"
   ></app-confirm-dialog>
 }

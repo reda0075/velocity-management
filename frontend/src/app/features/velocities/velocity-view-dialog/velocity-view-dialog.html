@@ -9,6 +9,11 @@
         <div>
           <h3 class="vel-view__collaborator">{{ collaborator()?.firstName }} {{ collaborator()?.lastName }}</h3>
           <p class="vel-view__period">{{ monthName(velocity()!.month) }} {{ velocity()!.year }}</p>
+          @if (velocity()!.status) {
+            <span class="badge" [class.badge-warning]="velocity()!.status === 'PENDING_VALIDATION'" [class.badge-success]="velocity()!.status === 'VALIDATED'">
+              {{ velocity()!.status === 'PENDING_VALIDATION' ? 'Pending validation' : 'Validated' }}
+            </span>
+          }
         </div>
         <div class="vel-view__kpi">
           <span class="vel-view__kpi-label">Velocity Ratio</span>

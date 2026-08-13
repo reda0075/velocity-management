@@ -1,3 +1,5 @@
+export type VelocityStatus = 'PENDING_VALIDATION' | 'VALIDATED';
+
 export interface VelocityRitual {
   ritualId: number;
   ritualName: string;
@@ -18,6 +20,7 @@ export interface Velocity {
   ritualTimeDays: number;
   effectiveWorkingDays: number;
   velocityRatio: number;
+  status: VelocityStatus;
   createdAt: string;
   updatedAt: string;
 }

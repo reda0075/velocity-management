@@ -106,6 +106,30 @@
       </div>
     </div>
 
+    @if (isEditMode) {
+      <div class="vel-form__summary">
+        <h3 class="vel-form__section-title">Calculation Summary</h3>
+        <div class="vel-form__summary-grid">
+          <div class="vel-form__summary-item">
+            <span class="vel-form__summary-label">Total Ritual Time</span>
+            <span class="vel-form__summary-value figure">{{ velocity!.totalRitualTimeHours | number: '1.2-2' }} h</span>
+          </div>
+          <div class="vel-form__summary-item">
+            <span class="vel-form__summary-label">Ritual Time in Days</span>
+            <span class="vel-form__summary-value figure">{{ velocity!.ritualTimeDays | number: '1.2-2' }}</span>
+          </div>
+          <div class="vel-form__summary-item">
+            <span class="vel-form__summary-label">Effective Working Days</span>
+            <span class="vel-form__summary-value figure">{{ velocity!.effectiveWorkingDays | number: '1.2-2' }}</span>
+          </div>
+          <div class="vel-form__summary-item">
+            <span class="vel-form__summary-label">Velocity Ratio</span>
+            <span class="vel-form__summary-value figure">{{ velocity!.velocityRatio | number: '1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
     @if (backendError()) {
       <div class="vel-form__banner">{{ backendError() }}</div>
     }

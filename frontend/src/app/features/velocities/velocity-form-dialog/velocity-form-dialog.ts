@@ -66,6 +66,9 @@ export class VelocityFormDialog implements OnChanges {
         workingDays: this.velocity.workingDays as unknown as number | null,
         velocity: this.velocity.velocity as unknown as number | null
       });
+      this.formattedRituals.set(
+        this.velocity.rituals.map(r => ({ ritualId: r.ritualId, occurrences: r.occurrences }))
+      );
     } else {
       this.form.reset({
         collaboratorId: null,
@@ -74,6 +77,7 @@ export class VelocityFormDialog implements OnChanges {
         workingDays: null,
         velocity: null
       });
+      this.formattedRituals.set([]);
     }
     this.backendError.set(null);
   }
