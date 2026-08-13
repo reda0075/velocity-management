@@ -48,6 +48,8 @@ export class VelocityFormDialog implements OnChanges {
   });
 
   newOccurrences = signal<number | null>(null);
+  editingRitualId = signal<number | null>(null);
+  editOccurrences = signal<number | null>(null);
 
   get isEditMode(): boolean {
     return this.velocity !== null;
@@ -117,6 +119,30 @@ export class VelocityFormDialog implements OnChanges {
 
   removeRitual(ritualId: number): void {
     this.formattedRituals.update(list => list.filter(r => r.ritualId !== ritualId));
+    if (this.editingRitualId() === ritualId) {
+      this.cancelEditRitual();
+    }
+  }
+
+  startEditRitual(ritualId: number, occurrences: number): void {
+    this.editingRitualId.set(ritualId);
+    this.editOccurrences.set(occurrences);
+  }
+
+  saveEditRitual(): void {
+    const ritualId = this.editingRitualId();
+    const occurrences = this.editOccurrences();
+    if (!ritualId || !occurrences || occurrences < 1) return;
+
+    this.formattedRituals.update(list =>
+      list.map(r => r.ritualId === ritualId ? { ...r, occurrences } : r)
+    );
+    this.cancelEditRitual();
+  }
+
+  cancelEditRitual(): void {
+    this.editingRitualId.set(null);
+    this.editOccurrences.set(null);
   }
 
   getRitualName(ritualId: number): string {

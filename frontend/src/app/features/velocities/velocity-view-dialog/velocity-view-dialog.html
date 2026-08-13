@@ -1,4 +1,4 @@
-<app-modal [title]="'Velocity Details'" (closed)="$any($event).closed.emit()">
+<app-modal [title]="'Velocity Details'" (closed)="closed.emit()">
   @if (loading()) {
     <div class="state">Loading...</div>
   } @else if (loadError()) {

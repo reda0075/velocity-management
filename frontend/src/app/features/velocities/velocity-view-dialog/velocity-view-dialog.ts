@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Modal } from '../../../shared/ui/modal/modal';
 import { VelocityApi } from '../../../core/services/velocity-api';
@@ -15,6 +15,7 @@ import { Collaborator } from '../../../core/models/collaborator';
 })
 export class VelocityViewDialog implements OnInit {
   @Input() velocityId: number | null = null;
+  @Output() closed = new EventEmitter<void>();
 
   private api = inject(VelocityApi);
   private collaboratorApi = inject(CollaboratorApi);

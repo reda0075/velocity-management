@@ -32,6 +32,22 @@
     width: 120px;
   }
 
+  &__inline-edit {
+    width: 100px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background: var(--color-surface);
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+  }
+
   &__banner {
     background: var(--color-danger-tint);
     color: var(--color-danger);

@@ -81,13 +81,27 @@
           <tbody>
             @for (r of formattedRituals(); track r.ritualId) {
               <tr>
-                <td>{{ getRitualName(r.ritualId) }}</td>
-                <td class="figure">{{ getRitualDuration(r.ritualId) }} h</td>
-                <td class="figure">{{ r.occurrences }}</td>
-                <td class="figure">{{ (getRitualDuration(r.ritualId) * r.occurrences).toFixed(2) }} h</td>
-                <td class="table__actions-cell">
-                  <button class="menu-trigger" type="button" (click)="removeRitual(r.ritualId)">×</button>
-                </td>
+                @if (editingRitualId() === r.ritualId) {
+                  <td>{{ getRitualName(r.ritualId) }}</td>
+                  <td class="figure">{{ getRitualDuration(r.ritualId) }} h</td>
+                  <td>
+                    <input class="field__input vel-form__inline-edit" type="number" [value]="editOccurrences()" (input)="editOccurrences.set(+$any($event.target).value)" min="1" />
+                  </td>
+                  <td class="figure">{{ (getRitualDuration(r.ritualId) * (editOccurrences() ?? r.occurrences)).toFixed(2) }} h</td>
+                  <td class="table__actions-cell">
+                    <button class="menu-trigger" type="button" (click)="saveEditRitual()">✓</button>
+                    <button class="menu-trigger" type="button" (click)="cancelEditRitual()">×</button>
+                  </td>
+                } @else {
+                  <td>{{ getRitualName(r.ritualId) }}</td>
+                  <td class="figure">{{ getRitualDuration(r.ritualId) }} h</td>
+                  <td class="figure">{{ r.occurrences }}</td>
+                  <td class="figure">{{ (getRitualDuration(r.ritualId) * r.occurrences).toFixed(2) }} h</td>
+                  <td class="table__actions-cell">
+                    <button class="menu-trigger" type="button" (click)="startEditRitual(r.ritualId, r.occurrences)">Edit</button>
+                    <button class="menu-trigger" type="button" (click)="removeRitual(r.ritualId)">×</button>
+                  </td>
+                }
               </tr>
             }
           </tbody>
@@ -97,7 +111,7 @@
       <div class="vel-form__add-ritual">
         <select #ritualSelect class="field__input">
           <option value="" disabled>Select a ritual</option>
-          @for (r of rituals(); track r.id) {
+          @for (r of rituals().filter(r => !formattedRituals().some(fr => fr.ritualId === r.id)); track r.id) {
             <option [value]="r.id">{{ r.name }} ({{ r.durationHours }} h)</option>
           }
         </select>
