@@ -28,5 +28,7 @@ public class CreateCollaboratorRequest {
     @NotNull
     private Profile profile;
 
+    private Long teamId;
+
 
 }

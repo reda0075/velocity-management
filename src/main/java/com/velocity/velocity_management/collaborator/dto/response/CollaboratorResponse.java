@@ -21,6 +21,8 @@ public class CollaboratorResponse {
     private String firstName;
     private String lastName;
     private Profile profile;
+    private Long teamId;
+    private String teamName;
     private boolean active ;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

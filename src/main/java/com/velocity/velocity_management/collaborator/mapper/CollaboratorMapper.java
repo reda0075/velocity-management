@@ -29,6 +29,15 @@ public class CollaboratorMapper {
         response.setFirstName(collaborator.getFirstName());
         response.setLastName(collaborator.getLastName());
         response.setProfile(collaborator.getProfile());
+        response.setTeamId( collaborator.getTeam() != null
+                ? collaborator.getTeam().getId()
+                : null
+        );
+        response.setTeamName(
+                collaborator.getTeam() != null
+                        ? collaborator.getTeam().getName()
+                        : null
+        );
         response.setActive(collaborator.isActive());
         response.setCreatedAt(collaborator.getCreatedAt());
         response.setUpdatedAt(collaborator.getUpdatedAt());

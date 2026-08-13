@@ -1,5 +1,6 @@
 package com.velocity.velocity_management.monthlycalculation.dto.response;
 
+import com.velocity.velocity_management.monthlycalculation.enums.VelocityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ public class VelocityResponse {
     private Double ritualTimeDays;
     private Double effectiveWorkingDays;
     private Double velocityRatio;
+    private VelocityStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

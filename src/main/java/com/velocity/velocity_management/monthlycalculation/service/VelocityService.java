@@ -4,6 +4,7 @@ import com.velocity.velocity_management.collaborator.entity.Collaborator;
 
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
+import com.velocity.velocity_management.monthlycalculation.enums.VelocityStatus;
 import com.velocity.velocity_management.monthlycalculation.dto.request.CreateVelocityRequest;
 import com.velocity.velocity_management.monthlycalculation.dto.request.VelocityRitualRequest;
 import com.velocity.velocity_management.monthlycalculation.dto.response.VelocityResponse;
@@ -67,6 +68,8 @@ public class VelocityService {
         velocity.setWorkingDays(request.getWorkingDays());
         velocity.setVelocity(request.getVelocity());
 
+        velocity.setStatus(VelocityStatus.PENDING_VALIDATION);
+
         LocalDateTime now = LocalDateTime.now();
 
         velocity.setCreatedAt(now);
@@ -128,6 +131,22 @@ public class VelocityService {
                 effectiveWorkingDays,
                 velocityRatio
         );
+    }
+
+    public VelocityResponse validateVelocity(Long id) {
+
+        Velocity velocity = velocityRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Velocity ID " + id + " not found"
+                        ));
+
+        velocity.setStatus(VelocityStatus.VALIDATED);
+        velocity.setUpdatedAt(LocalDateTime.now());
+
+        velocity = velocityRepository.save(velocity);
+
+        return buildResponse(velocity);
     }
 
 
@@ -199,6 +218,9 @@ public class VelocityService {
         velocity.setYear(request.getYear());
         velocity.setMonth(request.getMonth());
         velocity.setWorkingDays(request.getWorkingDays());
+
+        velocity.setStatus(VelocityStatus.PENDING_VALIDATION);
+
         velocity.setVelocity(request.getVelocity());
         velocity.setUpdatedAt(LocalDateTime.now());
 

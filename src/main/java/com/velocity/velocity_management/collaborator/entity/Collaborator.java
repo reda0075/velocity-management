@@ -2,6 +2,7 @@ package com.velocity.velocity_management.collaborator.entity;
 
 
 import com.velocity.velocity_management.collaborator.enums.Profile;
+import com.velocity.velocity_management.team.entity.Team;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -44,6 +45,10 @@ public class Collaborator {
 
  @Column(nullable = false)
  private boolean active = true;
+
+ @ManyToOne(fetch = FetchType.LAZY)
+ @JoinColumn(name = "team_id")
+ private Team team;
 
  @Column(nullable = false, updatable = false)
  private LocalDateTime createdAt;

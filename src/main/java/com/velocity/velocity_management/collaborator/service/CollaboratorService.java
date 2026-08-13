@@ -7,6 +7,9 @@ import com.velocity.velocity_management.collaborator.entity.Collaborator;
 import com.velocity.velocity_management.collaborator.mapper.CollaboratorMapper;
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
+import com.velocity.velocity_management.team.entity.Team;
+import com.velocity.velocity_management.team.repository.TeamRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,16 +19,25 @@ import java.util.List;
 public class CollaboratorService {
     private final CollaboratorRepository collaboratorRepository;
     private final CollaboratorMapper collaboratorMapper;
+    private final TeamRepository teamRepository;
 
-    public CollaboratorService(CollaboratorRepository collaboratorRepository, CollaboratorMapper collaboratorMapper) {
+    public CollaboratorService(CollaboratorRepository collaboratorRepository, CollaboratorMapper collaboratorMapper, TeamRepository teamRepository) {
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
+        this.teamRepository = teamRepository;
     }
 
             public CollaboratorResponse createCollaborator(CreateCollaboratorRequest request) {
                 Collaborator collaborator = collaboratorMapper.toEntity(request);
                 LocalDateTime now = LocalDateTime.now();
 
+                Team team = teamRepository.findById(request.getTeamId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Team ID " + request.getTeamId() + " not found"
+                                ));
+
+                collaborator.setTeam(team);
 
                 collaborator.setMatricule(generateMatricule(collaborator));
 
@@ -68,7 +80,7 @@ public class CollaboratorService {
         }
 
 
-
+    @Transactional(readOnly = true)
             public List<CollaboratorResponse> getAllCollaborators() {
 
                 return collaboratorRepository.findAll()
@@ -77,7 +89,7 @@ public class CollaboratorService {
                         .toList();
             }
 
-
+    @Transactional(readOnly = true)
             public CollaboratorResponse getCollaboratorById(Long id) {
 
                 Collaborator collaborator = collaboratorRepository.findById(id)
@@ -87,13 +99,22 @@ public class CollaboratorService {
                 return collaboratorMapper.toResponse(collaborator);
             }
 
-
+    @Transactional
             public CollaboratorResponse updateCollaborator(Long id, UpdateCollaboratorRequest request) {
 
                 Collaborator collaborator = collaboratorRepository.findById(id)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Collaborator with ID " + id + " not found"));
+
+
+                Team team = teamRepository.findById(request.getTeamId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Team ID " + request.getTeamId() + " not found"
+                                ));
+
+                collaborator.setTeam(team);
 
                 collaboratorMapper.updateEntity(collaborator, request);
 

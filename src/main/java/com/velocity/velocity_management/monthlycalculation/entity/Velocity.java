@@ -2,6 +2,7 @@ package com.velocity.velocity_management.monthlycalculation.entity;
 
 
 import com.velocity.velocity_management.collaborator.entity.Collaborator;
+import com.velocity.velocity_management.monthlycalculation.enums.VelocityStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,6 +40,10 @@ public class Velocity {
 
     @Column(nullable = false)
     private Double velocity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VelocityStatus status;
 
     @OneToMany(
             mappedBy = "velocity",

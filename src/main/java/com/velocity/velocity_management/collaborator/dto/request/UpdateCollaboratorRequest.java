@@ -27,4 +27,6 @@ public class UpdateCollaboratorRequest {
     private Profile profile;
     private boolean active;
 
+    private Long teamId;
+
 }
