@@ -105,6 +105,22 @@ public class VelocityService {
 
     private VelocityResponse buildResponse(Velocity velocity) {
 
+        double totalRitualTimeHours = totalRitualTimeHours(velocity);
+        double ritualTimeDays = totalRitualTimeHours / 8;
+        double effectiveWorkingDays = velocity.getWorkingDays() - ritualTimeDays;
+        double velocityRatio = velocity.getVelocity() / effectiveWorkingDays;
+
+        return velocityMapper.toResponse(
+                velocity,
+                totalRitualTimeHours,
+                ritualTimeDays,
+                effectiveWorkingDays,
+                velocityRatio
+        );
+    }
+
+    private double totalRitualTimeHours(Velocity velocity) {
+
         double totalRitualTimeHours = 0;
 
         for (VelocityRitual velocityRitual : velocity.getRituals()) {
@@ -116,21 +132,20 @@ public class VelocityService {
             totalRitualTimeHours += duration * occurrences;
         }
 
+        return totalRitualTimeHours;
+    }
+
+    /**
+     * Public helper so other modules (e.g. team velocity aggregation)
+     * reuse the exact same ratio formula instead of duplicating it.
+     */
+    public double calculateVelocityRatio(Velocity velocity) {
+
+        double totalRitualTimeHours = totalRitualTimeHours(velocity);
         double ritualTimeDays = totalRitualTimeHours / 8;
+        double effectiveWorkingDays = velocity.getWorkingDays() - ritualTimeDays;
 
-        double effectiveWorkingDays =
-                velocity.getWorkingDays() - ritualTimeDays;
-
-        double velocityRatio =
-                velocity.getVelocity() / effectiveWorkingDays;
-
-        return velocityMapper.toResponse(
-                velocity,
-                totalRitualTimeHours,
-                ritualTimeDays,
-                effectiveWorkingDays,
-                velocityRatio
-        );
+        return velocity.getVelocity() / effectiveWorkingDays;
     }
 
     public VelocityResponse validateVelocity(Long id) {

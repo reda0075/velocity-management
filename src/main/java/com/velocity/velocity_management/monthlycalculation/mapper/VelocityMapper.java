@@ -39,6 +39,7 @@ public class VelocityMapper {
         response.setRitualTimeDays(ritualTimeDays);
         response.setEffectiveWorkingDays(effectiveWorkingDays);
         response.setVelocityRatio(velocityRatio);
+        response.setStatus(velocity.getStatus());
 
         response.setCreatedAt(velocity.getCreatedAt());
         response.setUpdatedAt(velocity.getUpdatedAt());
