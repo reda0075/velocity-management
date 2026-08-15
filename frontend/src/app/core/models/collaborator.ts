@@ -18,5 +18,5 @@ export interface CollaboratorRequest {
   firstName: string;
   lastName: string;
   profile: Profile;
-  teamId: number | null;
+  teamId?: number | null;
 }
