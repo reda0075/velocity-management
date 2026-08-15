@@ -27,17 +27,19 @@ public class CollaboratorService {
         this.teamRepository = teamRepository;
     }
 
+    @Transactional
             public CollaboratorResponse createCollaborator(CreateCollaboratorRequest request) {
                 Collaborator collaborator = collaboratorMapper.toEntity(request);
                 LocalDateTime now = LocalDateTime.now();
 
-                Team team = teamRepository.findById(request.getTeamId())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Team ID " + request.getTeamId() + " not found"
-                                ));
-
-                collaborator.setTeam(team);
+                if (request.getTeamId() != null) {
+                    Team team = teamRepository.findById(request.getTeamId())
+                            .orElseThrow(() ->
+                                    new ResourceNotFoundException(
+                                            "Team ID " + request.getTeamId() + " not found"
+                                    ));
+                    collaborator.setTeam(team);
+                }
 
                 collaborator.setMatricule(generateMatricule(collaborator));
 
@@ -108,13 +110,16 @@ public class CollaboratorService {
                                         "Collaborator with ID " + id + " not found"));
 
 
-                Team team = teamRepository.findById(request.getTeamId())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Team ID " + request.getTeamId() + " not found"
-                                ));
-
-                collaborator.setTeam(team);
+                if (request.getTeamId() != null) {
+                    Team team = teamRepository.findById(request.getTeamId())
+                            .orElseThrow(() ->
+                                    new ResourceNotFoundException(
+                                            "Team ID " + request.getTeamId() + " not found"
+                                    ));
+                    collaborator.setTeam(team);
+                } else {
+                    collaborator.setTeam(null);
+                }
 
                 collaboratorMapper.updateEntity(collaborator, request);
 
@@ -127,6 +132,7 @@ public class CollaboratorService {
 
 
 
+    @Transactional
             public CollaboratorResponse activateCollaborator(Long id) {
 
                 Collaborator collaborator = collaboratorRepository.findById(id)
@@ -145,6 +151,7 @@ public class CollaboratorService {
 
 
 
+    @Transactional
             public CollaboratorResponse deactivateCollaborator(Long id) {
 
                 Collaborator collaborator = collaboratorRepository.findById(id)
