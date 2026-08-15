@@ -1,5 +1,8 @@
 package com.velocity.velocity_management.team.service;
 
+import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
+import com.velocity.velocity_management.collaborator.mapper.CollaboratorMapper;
+import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
 import com.velocity.velocity_management.team.dto.request.CreateTeamRequest;
 import com.velocity.velocity_management.team.dto.request.UpdateTeamRequest;
@@ -8,6 +11,7 @@ import com.velocity.velocity_management.team.entity.Team;
 import com.velocity.velocity_management.team.mapper.TeamMapper;
 import com.velocity.velocity_management.team.repository.TeamRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,13 +20,19 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final TeamMapper teamMapper;
+    private final CollaboratorRepository collaboratorRepository;
+    private final CollaboratorMapper collaboratorMapper;
 
     public TeamService(
             TeamRepository teamRepository,
-            TeamMapper teamMapper) {
+            TeamMapper teamMapper,
+            CollaboratorRepository collaboratorRepository,
+            CollaboratorMapper collaboratorMapper) {
 
         this.teamRepository = teamRepository;
         this.teamMapper = teamMapper;
+        this.collaboratorRepository = collaboratorRepository;
+        this.collaboratorMapper = collaboratorMapper;
     }
 
     public TeamResponse createTeam(CreateTeamRequest request) {
@@ -57,6 +67,21 @@ public class TeamService {
                         ));
 
         return teamMapper.toResponse(team);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CollaboratorResponse> getTeamMembers(Long id) {
+
+        if (!teamRepository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Team with ID " + id + " not found"
+            );
+        }
+
+        return collaboratorRepository.findByTeamIdAndActiveTrue(id)
+                .stream()
+                .map(collaboratorMapper::toResponse)
+                .toList();
     }
 
     public TeamResponse updateTeam(

@@ -5,12 +5,13 @@ import { Team } from '../../core/models/team';
 import { Toast } from '../../core/services/toast';
 import { extractErrorMessage } from '../../core/utils/http-error';
 import { TeamFormDialog } from './team-form-dialog/team-form-dialog';
+import { TeamMembersDialog } from './team-members-dialog/team-members-dialog';
 import { ConfirmDialog } from '../../shared/dialogs/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-teams',
   standalone: true,
-  imports: [TeamFormDialog, ConfirmDialog],
+  imports: [TeamFormDialog, TeamMembersDialog, ConfirmDialog],
   templateUrl: './teams.html',
   styleUrl: './teams.scss'
 })
@@ -27,6 +28,10 @@ export class Teams implements OnInit {
   openMenuId = signal<number | null>(null);
   deactivateTarget = signal<Team | null>(null);
   deleteTarget = signal<Team | null>(null);
+
+  showMembersDialog = signal(false);
+  membersTeamId = signal<number | null>(null);
+  membersTeamName = signal<string | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -124,5 +129,18 @@ export class Teams implements OnInit {
         this.deleteTarget.set(null);
       }
     });
+  }
+
+  openMembersDialog(team: Team): void {
+    this.closeMenu();
+    this.membersTeamId.set(team.id);
+    this.membersTeamName.set(team.name);
+    this.showMembersDialog.set(true);
+  }
+
+  closeMembersDialog(): void {
+    this.showMembersDialog.set(false);
+    this.membersTeamId.set(null);
+    this.membersTeamName.set(null);
   }
 }

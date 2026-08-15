@@ -3,7 +3,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Modal } from '../../../shared/ui/modal/modal';
 import { CollaboratorApi } from '../../../core/services/collaborator-api';
+import { TeamApi } from '../../../core/services/team-api';
 import { Collaborator, CollaboratorRequest, Profile } from '../../../core/models/collaborator';
+import { Team } from '../../../core/models/team';
 import { Toast } from '../../../core/services/toast';
 import { extractErrorMessage } from '../../../core/utils/http-error';
 
@@ -21,20 +23,36 @@ export class CollaboratorFormDialog implements OnChanges {
 
   private fb = inject(FormBuilder);
   private api = inject(CollaboratorApi);
+  private teamApi = inject(TeamApi);
   private toast = inject(Toast);
 
   profiles: Profile[] = ['DEV', 'DEVOPS', 'QA'];
+  teams = signal<Team[]>([]);
   submitting = signal(false);
   backendError = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50)]],
     lastName: ['', [Validators.required, Validators.maxLength(50)]],
-    profile: ['', [Validators.required]]
+    profile: ['', [Validators.required]],
+    teamId: [null as number | null]
   });
 
   get isEditMode(): boolean {
     return this.collaborator !== null;
+  }
+
+  ngOnInit(): void {
+    this.loadTeams();
+  }
+
+  loadTeams(): void {
+    this.teamApi.getAll().subscribe({
+      next: (data) => {
+        this.teams.set(data.filter(t => t.active));
+      },
+      error: () => {}
+    });
   }
 
   ngOnChanges(): void {
@@ -42,10 +60,11 @@ export class CollaboratorFormDialog implements OnChanges {
       this.form.setValue({
         firstName: this.collaborator.firstName,
         lastName: this.collaborator.lastName,
-        profile: this.collaborator.profile
+        profile: this.collaborator.profile,
+        teamId: this.collaborator.teamId
       });
     } else {
-      this.form.reset({ firstName: '', lastName: '', profile: '' });
+      this.form.reset({ firstName: '', lastName: '', profile: '', teamId: null });
     }
     this.backendError.set(null);
   }
@@ -63,7 +82,8 @@ export class CollaboratorFormDialog implements OnChanges {
     const payload: CollaboratorRequest = {
       firstName: raw.firstName.trim(),
       lastName: raw.lastName.trim(),
-      profile: raw.profile as Profile
+      profile: raw.profile as Profile,
+      teamId: raw.teamId as number | null
     };
 
     const request$ = this.isEditMode

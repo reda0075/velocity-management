@@ -28,6 +28,7 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Profile</th>
+            <th>Team</th>
             <th>Status</th>
             <th></th>
           </tr>
@@ -39,6 +40,7 @@
               <td>{{ c.firstName }}</td>
               <td>{{ c.lastName }}</td>
               <td>{{ c.profile }}</td>
+              <td>{{ c.teamName || 'Unassigned' }}</td>
               <td>
                 @if (c.active) {
                   <span class="badge badge-success">Active</span>

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Team, TeamRequest } from '../models/team';
+import { Collaborator } from '../models/collaborator';
 
 @Injectable({ providedIn: 'root' })
 export class TeamApi {
@@ -15,6 +16,10 @@ export class TeamApi {
 
   getById(id: number): Observable<Team> {
     return this.http.get<Team>(`${this.baseUrl}/${id}`);
+  }
+
+  getMembers(teamId: number): Observable<Collaborator[]> {
+    return this.http.get<Collaborator[]>(`${this.baseUrl}/${teamId}/members`);
   }
 
   create(payload: TeamRequest): Observable<Team> {

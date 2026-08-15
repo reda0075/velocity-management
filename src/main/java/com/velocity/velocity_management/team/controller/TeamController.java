@@ -1,5 +1,6 @@
 package com.velocity.velocity_management.team.controller;
 
+import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
 import com.velocity.velocity_management.team.dto.request.CreateTeamRequest;
 import com.velocity.velocity_management.team.dto.request.UpdateTeamRequest;
 import com.velocity.velocity_management.team.dto.response.TeamResponse;
@@ -44,6 +45,15 @@ public class TeamController {
 
         return ResponseEntity.ok(
                 teamService.getTeamById(id)
+        );
+    }
+
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<CollaboratorResponse>> getTeamMembers(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                teamService.getTeamMembers(id)
         );
     }
 

@@ -34,6 +34,16 @@
       }
     </label>
 
+    <label class="field">
+      <span class="field__label">Team</span>
+      <select class="field__input" formControlName="teamId">
+        <option [value]="null">No team</option>
+        @for (t of teams(); track t.id) {
+          <option [value]="t.id">{{ t.name }}</option>
+        }
+      </select>
+    </label>
+
     @if (backendError()) {
       <div class="collab-form__banner">{{ backendError() }}</div>
     }
