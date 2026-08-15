@@ -5,3 +5,43 @@
   background: var(--color-primary-tint);
   color: var(--color-primary-dark);
 }
+
+.vel-modes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.vel-modes__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--color-text-faint);
+  }
+
+  &--active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
+}
+
+.vel-modes__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.vel-modes__hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

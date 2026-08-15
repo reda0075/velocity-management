@@ -5,23 +5,32 @@ import { VelocityApi } from '../../core/services/velocity-api';
 import { Velocity, VelocityStatus } from '../../core/models/velocity';
 import { CollaboratorApi } from '../../core/services/collaborator-api';
 import { Collaborator } from '../../core/models/collaborator';
+import { TeamVelocityApi } from '../../core/services/team-velocity-api';
+import { TeamVelocity } from '../../core/models/team-velocity';
 import { Toast } from '../../core/services/toast';
 import { extractErrorMessage } from '../../core/utils/http-error';
 import { VelocityFormDialog } from './velocity-form-dialog/velocity-form-dialog';
 import { VelocityViewDialog } from './velocity-view-dialog/velocity-view-dialog';
+import { TeamVelocityFormDialog } from './team-velocity-form-dialog/team-velocity-form-dialog';
+import { TeamVelocityDetailDialog } from './team-velocity-detail-dialog/team-velocity-detail-dialog';
 import { ConfirmDialog } from '../../shared/dialogs/confirm-dialog/confirm-dialog';
+
+type Mode = 'collaborator' | 'team';
 
 @Component({
   selector: 'app-velocities',
   standalone: true,
-  imports: [CommonModule, VelocityFormDialog, VelocityViewDialog, ConfirmDialog],
+  imports: [CommonModule, VelocityFormDialog, VelocityViewDialog, TeamVelocityFormDialog, TeamVelocityDetailDialog, ConfirmDialog],
   templateUrl: './velocities.html',
   styleUrl: './velocities.scss'
 })
 export class Velocities implements OnInit {
   private api = inject(VelocityApi);
   private collaboratorApi = inject(CollaboratorApi);
+  private teamVelocityApi = inject(TeamVelocityApi);
   private toast = inject(Toast);
+
+  mode = signal<Mode>('collaborator');
 
   velocities = signal<Velocity[]>([]);
   collaboratorsMap = signal<Map<number, Collaborator>>(new Map());
@@ -37,8 +46,18 @@ export class Velocities implements OnInit {
   deleteTarget = signal<Velocity | null>(null);
   validateTarget = signal<Velocity | null>(null);
 
+  teamVelocities = signal<TeamVelocity[]>([]);
+  teamLoading = signal(true);
+  teamLoadError = signal<string | null>(null);
+
+  showTeamFormDialog = signal(false);
+  teamOpenMenuId = signal<number | null>(null);
+  teamDeleteTarget = signal<TeamVelocity | null>(null);
+  teamViewId = signal<number | null>(null);
+
   ngOnInit(): void {
     this.load();
+    this.loadTeamVelocities();
   }
 
   @HostListener('document:click', ['$event'])
@@ -46,8 +65,17 @@ export class Velocities implements OnInit {
     const target = event.target as HTMLElement | null;
     if (!target || !target.closest('.table__actions-cell')) {
       this.closeMenu();
+      this.closeTeamMenu();
     }
   }
+
+  setMode(m: Mode): void {
+    this.mode.set(m);
+    this.closeMenu();
+    this.closeTeamMenu();
+  }
+
+  // ---- Collaborator velocity ----
 
   load(): void {
     this.loading.set(true);
@@ -170,6 +198,68 @@ export class Velocities implements OnInit {
       }
     });
   }
+
+  // ---- Team velocity ----
+
+  loadTeamVelocities(): void {
+    this.teamLoading.set(true);
+    this.teamLoadError.set(null);
+    this.teamVelocityApi.getAll().subscribe({
+      next: (data) => {
+        this.teamVelocities.set(data);
+        this.teamLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.teamLoadError.set(extractErrorMessage(err, 'Could not load team velocities. Is the backend running?'));
+        this.teamLoading.set(false);
+      }
+    });
+  }
+
+  closeTeamMenu(): void {
+    this.teamOpenMenuId.set(null);
+  }
+
+  toggleTeamMenu(id: number): void {
+    this.teamOpenMenuId.set(this.teamOpenMenuId() === id ? null : id);
+  }
+
+  openCreateTeamDialog(): void {
+    this.showTeamFormDialog.set(true);
+  }
+
+  onTeamDialogSaved(): void {
+    this.showTeamFormDialog.set(false);
+    this.loadTeamVelocities();
+  }
+
+  openTeamDetail(teamVelocity: TeamVelocity): void {
+    this.closeTeamMenu();
+    this.teamViewId.set(teamVelocity.id);
+  }
+
+  askDeleteTeam(teamVelocity: TeamVelocity): void {
+    this.closeTeamMenu();
+    this.teamDeleteTarget.set(teamVelocity);
+  }
+
+  confirmDeleteTeam(): void {
+    const target = this.teamDeleteTarget();
+    if (!target) return;
+    this.teamVelocityApi.delete(target.id).subscribe({
+      next: () => {
+        this.toast.success(`${target.teamName} team velocity deleted.`);
+        this.teamDeleteTarget.set(null);
+        this.loadTeamVelocities();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toast.error(extractErrorMessage(err, 'Could not delete team velocity.'));
+        this.teamDeleteTarget.set(null);
+      }
+    });
+  }
+
+  // ---- Shared helpers ----
 
   monthName(month: number): string {
     const date = new Date(2000, month - 1, 1);

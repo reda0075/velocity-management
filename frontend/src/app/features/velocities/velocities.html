@@ -4,79 +4,154 @@
       <h2>Velocities</h2>
       <p class="page__description">Manage monthly velocity calculations.</p>
     </div>
-    <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
   </div>
 
-  <div class="card table-card">
-    @if (loading()) {
-      <div class="state state--loading">Loading velocities...</div>
-    } @else if (loadError()) {
-      <div class="state state--error">
-        <p>{{ loadError() }}</p>
-        <button class="btn btn-secondary" type="button" (click)="load()">Retry</button>
-      </div>
-    } @else if (velocities().length === 0) {
-      <div class="state state--empty">
-        <p>No velocity calculations yet.</p>
-        <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
-      </div>
-    } @else {
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Collaborator</th>
-            <th>Year</th>
-            <th>Month</th>
-            <th>Working Days</th>
-            <th>Velocity</th>
-            <th>Ritual Time</th>
-            <th>Ritual Days</th>
-            <th>Effective Days</th>
-            <th>Velocity Ratio</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (v of velocities(); track v.id) {
-            <tr>
-              <td>{{ getCollaboratorName(v.collaboratorId) }}</td>
-              <td class="figure">{{ v.year }}</td>
-              <td>{{ monthName(v.month) }}</td>
-              <td class="figure">{{ v.workingDays }}</td>
-              <td class="figure">{{ v.velocity }}</td>
-              <td class="figure">{{ v.totalRitualTimeHours | number: '1.2-2' }} h</td>
-              <td class="figure">{{ v.ritualTimeDays | number: '1.2-2' }}</td>
-              <td class="figure">{{ v.effectiveWorkingDays | number: '1.2-2' }}</td>
-              <td>
-                <span class="badge badge-neutral velocity-ratio">{{ v.velocityRatio | number: '1.2-2' }}</span>
-              </td>
-              <td>
-                @if (v.status === 'PENDING_VALIDATION') {
-                  <span class="badge badge-warning">Pending validation</span>
-                } @else {
-                  <span class="badge badge-success">Validated</span>
-                }
-              </td>
-              <td class="table__actions-cell">
-                <button class="menu-trigger" type="button" (click)="toggleMenu(v.id)">⋮</button>
-                @if (openMenuId() === v.id) {
-                  <div class="menu">
-                    <button type="button" (click)="openViewDialog(v)">View</button>
-                    <button type="button" (click)="openEditDialog(v)">Edit</button>
-                    @if (v.status === 'PENDING_VALIDATION') {
-                      <button type="button" (click)="askValidate(v)">Validate</button>
-                    }
-                    <button type="button" class="menu__danger" (click)="askDelete(v)">Delete</button>
-                  </div>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
+  <div class="vel-modes">
+    <button class="vel-modes__btn" type="button" [class.vel-modes__btn--active]="mode() === 'collaborator'" (click)="setMode('collaborator')">
+      <span class="vel-modes__label">Calculate Collaborator Velocity</span>
+      <span class="vel-modes__hint">Individual member calculations</span>
+    </button>
+    <button class="vel-modes__btn" type="button" [class.vel-modes__btn--active]="mode() === 'team'" (click)="setMode('team')">
+      <span class="vel-modes__label">Calculate Team Velocity</span>
+      <span class="vel-modes__hint">Aggregated team performance</span>
+    </button>
   </div>
+
+  @if (mode() === 'collaborator') {
+    <div class="page__header">
+      <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
+    </div>
+
+    <div class="card table-card">
+      @if (loading()) {
+        <div class="state state--loading">Loading velocities...</div>
+      } @else if (loadError()) {
+        <div class="state state--error">
+          <p>{{ loadError() }}</p>
+          <button class="btn btn-secondary" type="button" (click)="load()">Retry</button>
+        </div>
+      } @else if (velocities().length === 0) {
+        <div class="state state--empty">
+          <p>No velocity calculations yet.</p>
+          <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
+        </div>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Collaborator</th>
+              <th>Year</th>
+              <th>Month</th>
+              <th>Working Days</th>
+              <th>Velocity</th>
+              <th>Ritual Time</th>
+              <th>Ritual Days</th>
+              <th>Effective Days</th>
+              <th>Velocity Ratio</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of velocities(); track v.id) {
+              <tr>
+                <td>{{ getCollaboratorName(v.collaboratorId) }}</td>
+                <td class="figure">{{ v.year }}</td>
+                <td>{{ monthName(v.month) }}</td>
+                <td class="figure">{{ v.workingDays }}</td>
+                <td class="figure">{{ v.velocity }}</td>
+                <td class="figure">{{ v.totalRitualTimeHours | number: '1.2-2' }} h</td>
+                <td class="figure">{{ v.ritualTimeDays | number: '1.2-2' }}</td>
+                <td class="figure">{{ v.effectiveWorkingDays | number: '1.2-2' }}</td>
+                <td>
+                  <span class="badge badge-neutral velocity-ratio">{{ v.velocityRatio | number: '1.2-2' }}</span>
+                </td>
+                <td>
+                  @if (v.status === 'PENDING_VALIDATION') {
+                    <span class="badge badge-warning">Pending validation</span>
+                  } @else {
+                    <span class="badge badge-success">Validated</span>
+                  }
+                </td>
+                <td class="table__actions-cell">
+                  <button class="menu-trigger" type="button" (click)="toggleMenu(v.id)">⋮</button>
+                  @if (openMenuId() === v.id) {
+                    <div class="menu">
+                      <button type="button" (click)="openViewDialog(v)">View</button>
+                      <button type="button" (click)="openEditDialog(v)">Edit</button>
+                      @if (v.status === 'PENDING_VALIDATION') {
+                        <button type="button" (click)="askValidate(v)">Validate</button>
+                      }
+                      <button type="button" class="menu__danger" (click)="askDelete(v)">Delete</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  @if (mode() === 'team') {
+    <div class="page__header">
+      <button class="btn btn-primary" type="button" (click)="openCreateTeamDialog()">+ New Calculation</button>
+    </div>
+
+    <div class="card table-card">
+      @if (teamLoading()) {
+        <div class="state state--loading">Loading team velocities...</div>
+      } @else if (teamLoadError()) {
+        <div class="state state--error">
+          <p>{{ teamLoadError() }}</p>
+          <button class="btn btn-secondary" type="button" (click)="loadTeamVelocities()">Retry</button>
+        </div>
+      } @else if (teamVelocities().length === 0) {
+        <div class="state state--empty">
+          <p>No team velocity calculations yet.</p>
+          <button class="btn btn-primary" type="button" (click)="openCreateTeamDialog()">+ New Calculation</button>
+        </div>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Year</th>
+              <th>Month</th>
+              <th>Team Velocity Ratio</th>
+              <th>Validated / Total</th>
+              <th>Created At</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tv of teamVelocities(); track tv.id) {
+              <tr>
+                <td>{{ tv.teamName }}</td>
+                <td class="figure">{{ tv.year }}</td>
+                <td>{{ monthName(tv.month) }}</td>
+                <td>
+                  <span class="badge badge-neutral velocity-ratio">{{ tv.teamVelocityRatio | number: '1.2-2' }}</span>
+                </td>
+                <td class="figure">{{ tv.validatedMembers }} / {{ tv.totalMembers }}</td>
+                <td class="figure">{{ tv.createdAt | date: 'yyyy-MM-dd' }}</td>
+                <td class="table__actions-cell">
+                  <button class="menu-trigger" type="button" (click)="toggleTeamMenu(tv.id)">⋮</button>
+                  @if (teamOpenMenuId() === tv.id) {
+                    <div class="menu">
+                      <button type="button" (click)="openTeamDetail(tv)">More details</button>
+                      <button type="button" class="menu__danger" (click)="askDeleteTeam(tv)">Delete</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
 </div>
 
 @if (showFormDialog()) {
@@ -112,5 +187,30 @@
     confirmLabel="Validate"
     (confirmed)="confirmValidate()"
     (cancelled)="validateTarget.set(null)"
+  ></app-confirm-dialog>
+}
+
+@if (showTeamFormDialog()) {
+  <app-team-velocity-form-dialog
+    (saved)="onTeamDialogSaved()"
+    (closed)="showTeamFormDialog.set(false)"
+  ></app-team-velocity-form-dialog>
+}
+
+@if (teamViewId()) {
+  <app-team-velocity-detail-dialog
+    [teamVelocityId]="teamViewId()!"
+    (closed)="teamViewId.set(null)"
+  ></app-team-velocity-detail-dialog>
+}
+
+@if (teamDeleteTarget()) {
+  <app-confirm-dialog
+    title="Delete team velocity"
+    [message]="'Are you sure you want to delete the team velocity for ' + teamDeleteTarget()!.teamName + ' ' + monthName(teamDeleteTarget()!.month) + ' ' + teamDeleteTarget()!.year + '? This cannot be undone.'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDeleteTeam()"
+    (cancelled)="teamDeleteTarget.set(null)"
   ></app-confirm-dialog>
 }
