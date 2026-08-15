@@ -6,6 +6,8 @@ export interface Collaborator {
   firstName: string;
   lastName: string;
   profile: Profile;
+  teamId: number | null;
+  teamName: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -16,4 +18,5 @@ export interface CollaboratorRequest {
   firstName: string;
   lastName: string;
   profile: Profile;
+  teamId: number | null;
 }
