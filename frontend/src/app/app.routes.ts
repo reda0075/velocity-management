@@ -23,6 +23,11 @@ export const routes: Routes = [
         data: { heading: 'Rituals' }
       },
       {
+        path: 'teams',
+        loadComponent: () => import('./features/teams/teams').then(m => m.Teams),
+        data: { heading: 'Teams' }
+      },
+      {
         path: 'velocities',
         loadComponent: () => import('./features/velocities/velocities').then(m => m.Velocities),
         data: { heading: 'Velocities' }

@@ -1,0 +1,94 @@
+<div class="page">
+  <div class="page__header">
+    <div>
+      <h2>Teams</h2>
+      <p class="page__description">Manage teams and their status.</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Team</button>
+  </div>
+
+  <div class="card table-card">
+    @if (loading()) {
+      <div class="state state--loading">Loading teams...</div>
+    } @else if (loadError()) {
+      <div class="state state--error">
+        <p>{{ loadError() }}</p>
+        <button class="btn btn-secondary" type="button" (click)="load()">Retry</button>
+      </div>
+    } @else if (teams().length === 0) {
+      <div class="state state--empty">
+        <p>No teams yet.</p>
+        <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Team</button>
+      </div>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (team of teams(); track team.id) {
+            <tr>
+              <td>{{ team.name }}</td>
+              <td>{{ team.description }}</td>
+              <td>
+                @if (team.active) {
+                  <span class="badge badge-success">Active</span>
+                } @else {
+                  <span class="badge badge-danger">Inactive</span>
+                }
+              </td>
+              <td class="table__actions-cell">
+                <button class="menu-trigger" type="button" (click)="toggleMenu(team.id)">⋮</button>
+                @if (openMenuId() === team.id) {
+                  <div class="menu">
+                    <button type="button" (click)="openEditDialog(team)">Edit</button>
+                    @if (team.active) {
+                      <button type="button" (click)="askDeactivate(team)">Deactivate</button>
+                    } @else {
+                      <button type="button" (click)="activate(team)">Activate</button>
+                    }
+                    <button type="button" class="menu__danger" (click)="askDelete(team)">Delete</button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>
+
+@if (showFormDialog()) {
+  <app-team-form-dialog
+    [team]="editingTeam()"
+    (saved)="onDialogSaved()"
+    (closed)="showFormDialog.set(false)"
+  ></app-team-form-dialog>
+}
+
+@if (deactivateTarget()) {
+  <app-confirm-dialog
+    title="Deactivate team"
+    [message]="'Are you sure you want to deactivate ' + deactivateTarget()!.name + '?'"
+    confirmLabel="Deactivate"
+    (confirmed)="confirmDeactivate()"
+    (cancelled)="deactivateTarget.set(null)"
+  ></app-confirm-dialog>
+}
+
+@if (deleteTarget()) {
+  <app-confirm-dialog
+    title="Delete team"
+    [message]="'Are you sure you want to delete ' + deleteTarget()!.name + '? This cannot be undone.'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="deleteTarget.set(null)"
+  ></app-confirm-dialog>
+}

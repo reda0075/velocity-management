@@ -1,0 +1,28 @@
+<app-modal [title]="isEditMode ? 'Edit Team' : 'Add Team'" (closed)="closed.emit()">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="team-form">
+
+    <label class="field">
+      <span class="field__label">Name</span>
+      <input class="field__input" type="text" formControlName="name" placeholder="e.g. Platform" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <span class="field__error">Name is required.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Description</span>
+      <textarea class="field__input" formControlName="description" rows="3" placeholder="Optional description"></textarea>
+    </label>
+
+    @if (backendError()) {
+      <div class="team-form__banner">{{ backendError() }}</div>
+    }
+
+    <div class="team-form__actions">
+      <button class="btn btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Team') }}
+      </button>
+    </div>
+  </form>
+</app-modal>
