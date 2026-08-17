@@ -1,10 +1,12 @@
 package com.velocity.velocity_management.team.service;
 
 import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
+import com.velocity.velocity_management.collaborator.entity.Collaborator;
 import com.velocity.velocity_management.collaborator.mapper.CollaboratorMapper;
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
 import com.velocity.velocity_management.team.dto.request.CreateTeamRequest;
+import com.velocity.velocity_management.team.dto.request.UpdateTeamMembersRequest;
 import com.velocity.velocity_management.team.dto.request.UpdateTeamRequest;
 import com.velocity.velocity_management.team.dto.response.TeamResponse;
 import com.velocity.velocity_management.team.entity.Team;
@@ -76,6 +78,49 @@ public class TeamService {
             throw new ResourceNotFoundException(
                     "Team with ID " + id + " not found"
             );
+        }
+
+        return collaboratorRepository.findByTeamIdAndActiveTrue(id)
+                .stream()
+                .map(collaboratorMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public List<CollaboratorResponse> updateTeamMembers(
+            Long id, UpdateTeamMembersRequest request) {
+
+        Team team = teamRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Team with ID " + id + " not found"
+                ));
+
+        List<Collaborator> currentMembers =
+                collaboratorRepository.findByTeamIdAndActiveTrue(id);
+
+        List<Long> targetIds = request.getCollaboratorIds();
+
+        List<Collaborator> targetCollaborators =
+                collaboratorRepository.findAllById(targetIds);
+
+        if (targetCollaborators.size() != targetIds.size()) {
+            throw new ResourceNotFoundException(
+                    "One or more collaborator IDs do not exist"
+            );
+        }
+
+        for (Collaborator current : currentMembers) {
+            if (!targetIds.contains(current.getId())) {
+                current.setTeam(null);
+                collaboratorRepository.save(current);
+            }
+        }
+
+        for (Collaborator target : targetCollaborators) {
+            if (target.getTeam() == null || !target.getTeam().getId().equals(id)) {
+                target.setTeam(team);
+                collaboratorRepository.save(target);
+            }
         }
 
         return collaboratorRepository.findByTeamIdAndActiveTrue(id)

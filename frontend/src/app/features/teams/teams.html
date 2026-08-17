@@ -46,7 +46,7 @@
                 <button class="menu-trigger" type="button" (click)="toggleMenu(team.id)">⋮</button>
                 @if (openMenuId() === team.id) {
                   <div class="menu">
-                    <button type="button" (click)="openMembersDialog(team)">View Members</button>
+                    <button type="button" (click)="openMembersDialog(team)">Manage Members</button>
                     <button type="button" (click)="openEditDialog(team)">Edit</button>
                     @if (team.active) {
                       <button type="button" (click)="askDeactivate(team)">Deactivate</button>
@@ -66,11 +66,12 @@
 </div>
 
 @if (showMembersDialog()) {
-  <app-team-members-dialog
+  <app-team-manage-members-dialog
     [teamId]="membersTeamId()!"
     [teamName]="membersTeamName()!"
+    (saved)="onMembersSaved()"
     (closed)="closeMembersDialog()"
-  ></app-team-members-dialog>
+  ></app-team-manage-members-dialog>
 }
 
 @if (showFormDialog()) {

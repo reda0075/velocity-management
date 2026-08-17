@@ -1,0 +1,33 @@
+<app-modal [title]="'Manage Members — ' + (teamName || 'Team')" (closed)="closed.emit()">
+  @if (loading()) {
+    <div class="state">Loading...</div>
+  } @else if (loadError()) {
+    <div class="state state--error">{{ loadError() }}</div>
+  } @else {
+    @if (backendError()) {
+      <div class="tm-form__banner">{{ backendError() }}</div>
+    }
+
+    <div class="tm-form__list">
+      @for (c of allCollaborators(); track c.id) {
+        <label class="tm-form__item" [class.tm-form__item--checked]="selectedIds().has(c.id)">
+          <input class="tm-form__checkbox" type="checkbox" [checked]="selectedIds().has(c.id)" (change)="toggle(c.id)" />
+          <span class="tm-form__info">
+            <span class="tm-form__name">{{ c.firstName }} {{ c.lastName }}</span>
+            <span class="tm-form__meta">{{ c.matricule }} · {{ c.profile }}</span>
+            @if (c.teamId && c.teamId !== teamId) {
+              <span class="tm-form__note">currently on {{ c.teamName }}</span>
+            }
+          </span>
+        </label>
+      }
+    </div>
+
+    <div class="tm-form__actions">
+      <button class="btn btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn btn-primary" type="button" (click)="submit()" [disabled]="submitting()">
+        {{ submitting() ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+  }
+</app-modal>

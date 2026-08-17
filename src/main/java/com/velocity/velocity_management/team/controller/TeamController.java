@@ -2,6 +2,7 @@ package com.velocity.velocity_management.team.controller;
 
 import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
 import com.velocity.velocity_management.team.dto.request.CreateTeamRequest;
+import com.velocity.velocity_management.team.dto.request.UpdateTeamMembersRequest;
 import com.velocity.velocity_management.team.dto.request.UpdateTeamRequest;
 import com.velocity.velocity_management.team.dto.response.TeamResponse;
 import com.velocity.velocity_management.team.service.TeamService;
@@ -54,6 +55,16 @@ public class TeamController {
 
         return ResponseEntity.ok(
                 teamService.getTeamMembers(id)
+        );
+    }
+
+    @PutMapping("/{id}/members")
+    public ResponseEntity<List<CollaboratorResponse>> updateTeamMembers(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateTeamMembersRequest request) {
+
+        return ResponseEntity.ok(
+                teamService.updateTeamMembers(id, request)
         );
     }
 

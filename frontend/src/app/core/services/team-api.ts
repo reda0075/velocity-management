@@ -22,6 +22,10 @@ export class TeamApi {
     return this.http.get<Collaborator[]>(`${this.baseUrl}/${teamId}/members`);
   }
 
+  updateMembers(teamId: number, payload: { collaboratorIds: number[] }): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${teamId}/members`, payload);
+  }
+
   create(payload: TeamRequest): Observable<Team> {
     return this.http.post<Team>(this.baseUrl, payload);
   }

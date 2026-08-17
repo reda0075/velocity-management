@@ -3,21 +3,23 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TeamApi } from '../../core/services/team-api';
 import { Team } from '../../core/models/team';
 import { Toast } from '../../core/services/toast';
+import { DataRefreshService } from '../../core/services/data-refresh';
 import { extractErrorMessage } from '../../core/utils/http-error';
 import { TeamFormDialog } from './team-form-dialog/team-form-dialog';
-import { TeamMembersDialog } from './team-members-dialog/team-members-dialog';
+import { TeamManageMembersDialog } from './team-manage-members-dialog/team-manage-members-dialog';
 import { ConfirmDialog } from '../../shared/dialogs/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-teams',
   standalone: true,
-  imports: [TeamFormDialog, TeamMembersDialog, ConfirmDialog],
+  imports: [TeamFormDialog, TeamManageMembersDialog, ConfirmDialog],
   templateUrl: './teams.html',
   styleUrl: './teams.scss'
 })
 export class Teams implements OnInit {
   private api = inject(TeamApi);
   private toast = inject(Toast);
+  private refresh = inject(DataRefreshService);
 
   teams = signal<Team[]>([]);
   loading = signal(true);
@@ -136,6 +138,12 @@ export class Teams implements OnInit {
     this.membersTeamId.set(team.id);
     this.membersTeamName.set(team.name);
     this.showMembersDialog.set(true);
+  }
+
+  onMembersSaved(): void {
+    this.showMembersDialog.set(false);
+    this.load();
+    this.refresh.triggerRefreshCollaborators();
   }
 
   closeMembersDialog(): void {
