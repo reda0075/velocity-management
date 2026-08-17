@@ -1,14 +1,16 @@
-<app-modal [title]="'Team Velocity Details'" (closed)="closed.emit()">
+<app-modal [title]="'Team Velocity Details'" [wide]="true" (closed)="closed.emit()">
   @if (loading()) {
     <div class="state">Loading...</div>
   } @else if (loadError()) {
     <div class="state state--error">{{ loadError() }}</div>
   } @else if (detail()) {
     <div class="tv-detail">
-      <div class="tv-detail__header">
-        <div>
-          <h3 class="tv-detail__team">{{ detail()!.teamName }}</h3>
-          <p class="tv-detail__period">{{ monthName(detail()!.month) }} {{ detail()!.year }}</p>
+      <div class="tv-detail__header tv-detail__header--wide">
+        <div class="tv-detail__header-left">
+          <div>
+            <h3 class="tv-detail__team">{{ detail()!.teamName }}</h3>
+            <p class="tv-detail__period">{{ monthName(detail()!.month) }} {{ detail()!.year }}</p>
+          </div>
         </div>
         <div class="tv-detail__kpi">
           <span class="tv-detail__kpi-label">Team Velocity Ratio</span>
@@ -16,7 +18,7 @@
         </div>
       </div>
 
-      <div class="tv-detail__grid">
+      <div class="tv-detail__grid tv-detail__grid--wide">
         <div class="tv-detail__card">
           <span class="tv-detail__card-label">Total Members</span>
           <span class="tv-detail__card-value figure">{{ detail()!.totalMembers }}</span>
@@ -33,7 +35,7 @@
 
       <div class="tv-detail__section">
         <h4 class="tv-detail__section-title">Member Breakdown</h4>
-        <table class="table">
+        <table class="table table--wide">
           <thead>
             <tr>
               <th>Collaborator</th>
