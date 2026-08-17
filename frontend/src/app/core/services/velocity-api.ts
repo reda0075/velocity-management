@@ -29,6 +29,10 @@ export class VelocityApi {
     return this.http.patch<void>(`${this.baseUrl}/${id}/validate`, {});
   }
 
+  unvalidate(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${id}/unvalidate`, {});
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

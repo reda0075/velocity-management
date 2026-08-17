@@ -184,6 +184,38 @@ public class VelocityService {
         return buildResponse(velocity);
     }
 
+    public VelocityResponse unvalidateVelocity(Long id) {
+
+        Velocity velocity = velocityRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Velocity ID " + id + " not found"
+                        ));
+
+        velocity.setStatus(VelocityStatus.PENDING_VALIDATION);
+        velocity.setUpdatedAt(LocalDateTime.now());
+
+        velocity = velocityRepository.save(velocity);
+
+        Long collaboratorId = velocity.getCollaborator().getId();
+        Collaborator collaborator = collaboratorRepository.findByIdWithTeam(collaboratorId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Collaborator ID " + collaboratorId + " not found"
+                        )
+                );
+
+        if (collaborator.getTeam() != null) {
+            teamVelocityService.recalculateTeamVelocity(
+                    collaborator.getTeam().getId(),
+                    velocity.getYear(),
+                    velocity.getMonth()
+            );
+        }
+
+        return buildResponse(velocity);
+    }
+
 
     public List<VelocityResponse> getAllVelocities() {
 

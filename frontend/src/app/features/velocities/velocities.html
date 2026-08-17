@@ -81,6 +81,8 @@
                       <button type="button" (click)="openEditDialog(v)">Edit</button>
                       @if (v.status === 'PENDING_VALIDATION') {
                         <button type="button" (click)="askValidate(v)">Validate</button>
+                      } @else {
+                        <button type="button" (click)="askUnvalidate(v)">Unvalidate</button>
                       }
                       <button type="button" class="menu__danger" (click)="askDelete(v)">Delete</button>
                     </div>
@@ -187,6 +189,16 @@
     confirmLabel="Validate"
     (confirmed)="confirmValidate()"
     (cancelled)="validateTarget.set(null)"
+  ></app-confirm-dialog>
+}
+
+@if (unvalidateTarget()) {
+  <app-confirm-dialog
+    title="Unvalidate velocity"
+    [message]="'Are you sure you want to unvalidate the velocity calculation for ' + monthName(unvalidateTarget()!.month) + ' ' + unvalidateTarget()!.year + '?'"
+    confirmLabel="Unvalidate"
+    (confirmed)="confirmUnvalidate()"
+    (cancelled)="unvalidateTarget.set(null)"
   ></app-confirm-dialog>
 }
 

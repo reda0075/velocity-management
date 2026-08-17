@@ -45,6 +45,7 @@ export class Velocities implements OnInit {
   openMenuId = signal<number | null>(null);
   deleteTarget = signal<Velocity | null>(null);
   validateTarget = signal<Velocity | null>(null);
+  unvalidateTarget = signal<Velocity | null>(null);
 
   teamVelocities = signal<TeamVelocity[]>([]);
   teamLoading = signal(true);
@@ -176,6 +177,28 @@ export class Velocities implements OnInit {
         this.toast.error(extractErrorMessage(err, 'Could not validate velocity.'));
         this.validateTarget.set(null);
         this.validatingId.set(null);
+      }
+    });
+  }
+
+  askUnvalidate(v: Velocity): void {
+    this.closeMenu();
+    this.unvalidateTarget.set(v);
+  }
+
+  confirmUnvalidate(): void {
+    const target = this.unvalidateTarget();
+    if (!target) return;
+    this.api.unvalidate(target.id).subscribe({
+      next: () => {
+        this.toast.success('Velocity calculation unvalidated.');
+        this.unvalidateTarget.set(null);
+        this.load();
+        this.loadTeamVelocities();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toast.error(extractErrorMessage(err, 'Could not unvalidate velocity.'));
+        this.unvalidateTarget.set(null);
       }
     });
   }

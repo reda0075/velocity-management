@@ -50,6 +50,11 @@ public class VelocityController {
         return velocityService.validateVelocity(id);
     }
 
+    @PatchMapping("/{id}/unvalidate")
+    public VelocityResponse unvalidateVelocity(@PathVariable Long id) {
+        return velocityService.unvalidateVelocity(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteVelocity(@PathVariable Long id) {
