@@ -14,4 +14,6 @@ public interface CollaboratorRepository extends JpaRepository<Collaborator , Lon
 
     List<Collaborator> findByTeamIdAndActiveTrue(Long teamId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Collaborator c LEFT JOIN FETCH c.team WHERE c.id = :id")
+    Optional<Collaborator> findByIdWithTeam(@org.springframework.data.repository.query.Param("id") Long id);
 }

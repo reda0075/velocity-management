@@ -1,7 +1,6 @@
 package com.velocity.velocity_management.monthlycalculation.service;
 
 import com.velocity.velocity_management.collaborator.entity.Collaborator;
-
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
 import com.velocity.velocity_management.monthlycalculation.enums.VelocityStatus;
@@ -14,6 +13,8 @@ import com.velocity.velocity_management.monthlycalculation.mapper.VelocityMapper
 import com.velocity.velocity_management.monthlycalculation.repository.VelocityRepository;
 import com.velocity.velocity_management.ritual.entity.Ritual;
 import com.velocity.velocity_management.ritual.repository.RitualRepository;
+import com.velocity.velocity_management.teammonthlycalculation.service.TeamVelocityService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,17 +28,20 @@ public class VelocityService {
     private final CollaboratorRepository collaboratorRepository;
     private final RitualRepository ritualRepository;
     private final VelocityMapper velocityMapper;
+    private final TeamVelocityService teamVelocityService;
 
     public VelocityService(
             VelocityRepository velocityRepository,
             CollaboratorRepository collaboratorRepository,
             RitualRepository ritualRepository,
-            VelocityMapper velocityMapper) {
+            VelocityMapper velocityMapper,
+            @Lazy TeamVelocityService teamVelocityService) {
 
         this.velocityRepository = velocityRepository;
         this.collaboratorRepository = collaboratorRepository;
         this.ritualRepository = ritualRepository;
         this.velocityMapper = velocityMapper;
+        this.teamVelocityService = teamVelocityService;
     }
 
     public VelocityResponse createVelocity(CreateVelocityRequest request) {
@@ -161,6 +165,22 @@ public class VelocityService {
 
         velocity = velocityRepository.save(velocity);
 
+        Long collaboratorId = velocity.getCollaborator().getId();
+        Collaborator collaborator = collaboratorRepository.findByIdWithTeam(collaboratorId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Collaborator ID " + collaboratorId + " not found"
+                        )
+                );
+
+        if (collaborator.getTeam() != null) {
+            teamVelocityService.recalculateTeamVelocity(
+                    collaborator.getTeam().getId(),
+                    velocity.getYear(),
+                    velocity.getMonth()
+            );
+        }
+
         return buildResponse(velocity);
     }
 
@@ -261,6 +281,22 @@ public class VelocityService {
         }
 
         velocity = velocityRepository.save(velocity);
+
+        Long collaboratorId = velocity.getCollaborator().getId();
+        Collaborator collaboratorWithTeam = collaboratorRepository.findByIdWithTeam(collaboratorId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Collaborator ID " + collaboratorId + " not found"
+                        )
+                );
+
+        if (collaboratorWithTeam.getTeam() != null) {
+            teamVelocityService.recalculateTeamVelocity(
+                    collaboratorWithTeam.getTeam().getId(),
+                    velocity.getYear(),
+                    velocity.getMonth()
+            );
+        }
 
         return buildResponse(velocity);
     }

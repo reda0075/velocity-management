@@ -152,6 +152,7 @@ export class Velocities implements OnInit {
     this.showFormDialog.set(false);
     this.editingVelocity.set(null);
     this.load();
+    this.loadTeamVelocities();
   }
 
   askValidate(v: Velocity): void {
@@ -169,6 +170,7 @@ export class Velocities implements OnInit {
         this.validateTarget.set(null);
         this.validatingId.set(null);
         this.load();
+        this.loadTeamVelocities();
       },
       error: (err: HttpErrorResponse) => {
         this.toast.error(extractErrorMessage(err, 'Could not validate velocity.'));

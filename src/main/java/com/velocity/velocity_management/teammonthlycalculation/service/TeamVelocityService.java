@@ -130,6 +130,77 @@ public class TeamVelocityService {
         return teamVelocityMapper.toResponse(teamVelocity);
     }
 
+    @Transactional
+    public void recalculateTeamVelocity(Long teamId, Integer year, Integer month) {
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Team ID " + teamId + " not found"
+                ));
+
+        List<Collaborator> members =
+                collaboratorRepository.findByTeamIdAndActiveTrue(teamId);
+
+        if (members.isEmpty()) {
+            teamVelocityRepository.findByTeamIdAndYearAndMonth(teamId, year, month)
+                    .ifPresent(teamVelocityRepository::delete);
+            return;
+        }
+
+        List<Velocity> velocities = velocityRepository.findByCollaborator_Team_IdAndYearAndMonth(
+                teamId, year, month
+        );
+
+        Map<Long, Velocity> velocityByCollaboratorId = velocities.stream()
+                .collect(Collectors.toMap(
+                        v -> v.getCollaborator().getId(),
+                        Function.identity()
+                ));
+
+        List<Double> includedRatios = new ArrayList<>();
+        int validatedCount = 0;
+
+        for (Collaborator collaborator : members) {
+
+            Velocity velocity = velocityByCollaboratorId.get(collaborator.getId());
+
+            if (velocity != null && velocity.getStatus() == VelocityStatus.VALIDATED) {
+                includedRatios.add(velocityService.calculateVelocityRatio(velocity));
+                validatedCount++;
+            }
+        }
+
+        if (includedRatios.isEmpty()) {
+            teamVelocityRepository.findByTeamIdAndYearAndMonth(teamId, year, month)
+                    .ifPresent(teamVelocityRepository::delete);
+            return;
+        }
+
+        double teamVelocityRatio = includedRatios.stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0);
+
+        TeamVelocity teamVelocity = teamVelocityRepository.findByTeamIdAndYearAndMonth(
+                teamId, year, month
+        ).orElseGet(TeamVelocity::new);
+
+        teamVelocity.setTeam(team);
+        teamVelocity.setYear(year);
+        teamVelocity.setMonth(month);
+        teamVelocity.setTeamVelocityRatio(teamVelocityRatio);
+        teamVelocity.setTotalMembers(members.size());
+        teamVelocity.setValidatedMembers(validatedCount);
+        teamVelocity.setUnvalidatedMembers(members.size() - validatedCount);
+        teamVelocity.setUpdatedAt(LocalDateTime.now());
+
+        if (teamVelocity.getCreatedAt() == null) {
+            teamVelocity.setCreatedAt(LocalDateTime.now());
+        }
+
+        teamVelocityRepository.save(teamVelocity);
+    }
+
     @Transactional(readOnly = true)
     public List<TeamVelocityResponse> getAllTeamVelocities() {
 
