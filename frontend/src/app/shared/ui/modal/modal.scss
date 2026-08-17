@@ -47,5 +47,9 @@
 
   &--wide {
     width: 720px;
+
+    .modal-panel__body {
+      padding: var(--space-6);
+    }
   }
 }
