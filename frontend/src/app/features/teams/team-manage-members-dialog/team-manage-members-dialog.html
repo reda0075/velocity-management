@@ -12,9 +12,6 @@
       <div class="tm-manage__section">
         <div class="tm-manage__section-header">
           <h4 class="tm-manage__section-title">Current Members ({{ currentMembers().length }})</h4>
-          <button class="btn btn-secondary btn-sm" type="button" (click)="toggleAddPanel()">
-            {{ showAddPanel() ? 'Cancel' : '+ Add Members' }}
-          </button>
         </div>
 
         <div class="tm-manage__list">
@@ -27,34 +24,35 @@
               <button class="tm-manage__remove" type="button" (click)="removeMember(c)" title="Remove from team">×</button>
             </div>
           }
+          @if (currentMembers().length === 0) {
+            <div class="tm-manage__empty">No members in this team yet.</div>
+          }
         </div>
       </div>
 
-      @if (showAddPanel()) {
-        <div class="tm-manage__section tm-manage__section--add">
-          <div class="tm-manage__section-header">
-            <h4 class="tm-manage__section-title">Available Collaborators ({{ availableCollaborators().length }})</h4>
-          </div>
-
-          <div class="tm-manage__list">
-            @for (c of availableCollaborators(); track c.id) {
-              <div class="tm-manage__item tm-manage__item--available">
-                <div class="tm-manage__item-info">
-                  <span class="tm-manage__item-name">{{ c.firstName }} {{ c.lastName }}</span>
-                  <span class="tm-manage__item-meta">{{ c.matricule }} · {{ c.profile }}</span>
-                  @if (c.teamId) {
-                    <span class="tm-manage__note">currently on {{ c.teamName }}</span>
-                  }
-                </div>
-                <button class="btn btn-primary btn-sm" type="button" (click)="addMember(c)">Add</button>
-              </div>
-            }
-            @if (availableCollaborators().length === 0) {
-              <div class="tm-manage__empty">No available collaborators to add.</div>
-            }
-          </div>
+      <div class="tm-manage__section tm-manage__section--add">
+        <div class="tm-manage__section-header">
+          <h4 class="tm-manage__section-title">Available Collaborators ({{ availableCollaborators().length }})</h4>
         </div>
-      }
+
+        <div class="tm-manage__list">
+          @for (c of availableCollaborators(); track c.id) {
+            <div class="tm-manage__item tm-manage__item--available">
+              <div class="tm-manage__item-info">
+                <span class="tm-manage__item-name">{{ c.firstName }} {{ c.lastName }}</span>
+                <span class="tm-manage__item-meta">{{ c.matricule }} · {{ c.profile }}</span>
+                @if (c.teamId) {
+                  <span class="tm-manage__note">currently on {{ c.teamName }}</span>
+                }
+              </div>
+              <button class="btn btn-primary btn-sm" type="button" (click)="addMember(c)">Add</button>
+            </div>
+          }
+          @if (availableCollaborators().length === 0) {
+            <div class="tm-manage__empty">No available collaborators to add.</div>
+          }
+        </div>
+      </div>
     </div>
 
     <div class="tm-form__actions">

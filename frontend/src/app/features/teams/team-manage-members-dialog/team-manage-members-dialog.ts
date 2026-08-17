@@ -26,9 +26,8 @@ export class TeamManageMembersDialog implements OnInit {
   private collaboratorApi = inject(CollaboratorApi);
   private toast = inject(Toast);
 
-  allCollaborators = signal<Collaborator[]>([]);
   currentMembers = signal<Collaborator[]>([]);
-  selectedIds = signal<Set<number>>(new Set());
+  availableCollaborators = signal<Collaborator[]>([]);
   submitting = signal(false);
   backendError = signal<string | null>(null);
   loading = signal(true);
@@ -45,12 +44,11 @@ export class TeamManageMembersDialog implements OnInit {
     this.collaboratorApi.getAll().subscribe({
       next: (all) => {
         const active = all.filter(c => c.active);
-        this.allCollaborators.set(active);
         this.api.getMembers(this.teamId!).subscribe({
           next: (members) => {
             this.currentMembers.set(members);
-            const selected = new Set<number>(members.map(m => m.id));
-            this.selectedIds.set(selected);
+            const memberIds = new Set(members.map(m => m.id));
+            this.availableCollaborators.set(active.filter(c => !memberIds.has(c.id)));
             this.loading.set(false);
           },
           error: () => {
@@ -66,30 +64,20 @@ export class TeamManageMembersDialog implements OnInit {
     });
   }
 
-  toggle(id: number): void {
-    this.selectedIds.update(set => {
-      const next = new Set(set);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+  removeMember(collaborator: Collaborator): void {
+    this.currentMembers.update(list => list.filter(c => c.id !== collaborator.id));
   }
 
-  getTeamName(teamId: number | null): string | null {
-    if (!teamId) return null;
-    const all = this.allCollaborators();
-    const c = all.find(x => x.id === teamId);
-    return c?.teamName ?? null;
+  addMember(collaborator: Collaborator): void {
+    this.currentMembers.update(list => [...list, collaborator]);
+    this.availableCollaborators.update(list => list.filter(c => c.id !== collaborator.id));
   }
 
   submit(): void {
     if (!this.teamId) return;
     this.backendError.set(null);
     this.submitting.set(true);
-    const payload = { collaboratorIds: Array.from(this.selectedIds()) };
+    const payload = { collaboratorIds: this.currentMembers().map(c => c.id) };
     this.api.updateMembers(this.teamId!, payload).subscribe({
       next: () => {
         this.submitting.set(false);
