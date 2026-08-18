@@ -202,6 +202,12 @@ public class TeamVelocityService {
     }
 
     @Transactional(readOnly = true)
+    public List<TeamVelocity> findByTeamId(Long teamId) {
+
+        return teamVelocityRepository.findByTeamId(teamId);
+    }
+
+    @Transactional(readOnly = true)
     public List<TeamVelocityResponse> getAllTeamVelocities() {
 
         return teamVelocityRepository.findAll()

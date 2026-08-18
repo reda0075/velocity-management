@@ -144,6 +144,7 @@ export class Teams implements OnInit {
     this.showMembersDialog.set(false);
     this.load();
     this.refresh.triggerRefreshCollaborators();
+    this.refresh.triggerRefreshTeamVelocities();
   }
 
   closeMembersDialog(): void {

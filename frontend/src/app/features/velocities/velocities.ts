@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { VelocityApi } from '../../core/services/velocity-api';
@@ -8,6 +8,7 @@ import { Collaborator } from '../../core/models/collaborator';
 import { TeamVelocityApi } from '../../core/services/team-velocity-api';
 import { TeamVelocity } from '../../core/models/team-velocity';
 import { Toast } from '../../core/services/toast';
+import { DataRefreshService } from '../../core/services/data-refresh';
 import { extractErrorMessage } from '../../core/utils/http-error';
 import { VelocityFormDialog } from './velocity-form-dialog/velocity-form-dialog';
 import { VelocityViewDialog } from './velocity-view-dialog/velocity-view-dialog';
@@ -29,6 +30,7 @@ export class Velocities implements OnInit {
   private collaboratorApi = inject(CollaboratorApi);
   private teamVelocityApi = inject(TeamVelocityApi);
   private toast = inject(Toast);
+  private refresh = inject(DataRefreshService);
 
   mode = signal<Mode>('collaborator');
 
@@ -59,6 +61,14 @@ export class Velocities implements OnInit {
   ngOnInit(): void {
     this.load();
     this.loadTeamVelocities();
+  }
+
+  constructor() {
+    effect(() => {
+      if (this.refresh.refreshTeamVelocities() > 0) {
+        this.loadTeamVelocities();
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])

@@ -13,4 +13,10 @@ export class DataRefreshService {
   triggerRefreshTeams() {
     this._refreshTeams.update(v => v + 1);
   }
+
+  private _refreshTeamVelocities = signal(0);
+  refreshTeamVelocities = this._refreshTeamVelocities.asReadonly();
+  triggerRefreshTeamVelocities() {
+    this._refreshTeamVelocities.update(v => v + 1);
+  }
 }

@@ -4,6 +4,7 @@ import com.velocity.velocity_management.teammonthlycalculation.entity.TeamVeloci
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,4 +21,6 @@ public interface TeamVelocityRepository extends JpaRepository<TeamVelocity, Long
             Integer year,
             Integer month
     );
+
+    List<TeamVelocity> findByTeamId(Long teamId);
 }

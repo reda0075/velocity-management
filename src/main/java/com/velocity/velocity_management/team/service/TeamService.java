@@ -12,6 +12,9 @@ import com.velocity.velocity_management.team.dto.response.TeamResponse;
 import com.velocity.velocity_management.team.entity.Team;
 import com.velocity.velocity_management.team.mapper.TeamMapper;
 import com.velocity.velocity_management.team.repository.TeamRepository;
+import com.velocity.velocity_management.teammonthlycalculation.entity.TeamVelocity;
+import com.velocity.velocity_management.teammonthlycalculation.service.TeamVelocityService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,17 +27,20 @@ public class TeamService {
     private final TeamMapper teamMapper;
     private final CollaboratorRepository collaboratorRepository;
     private final CollaboratorMapper collaboratorMapper;
+    private final TeamVelocityService teamVelocityService;
 
     public TeamService(
             TeamRepository teamRepository,
             TeamMapper teamMapper,
             CollaboratorRepository collaboratorRepository,
-            CollaboratorMapper collaboratorMapper) {
+            CollaboratorMapper collaboratorMapper,
+            @Lazy TeamVelocityService teamVelocityService) {
 
         this.teamRepository = teamRepository;
         this.teamMapper = teamMapper;
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
+        this.teamVelocityService = teamVelocityService;
     }
 
     public TeamResponse createTeam(CreateTeamRequest request) {
@@ -121,6 +127,17 @@ public class TeamService {
                 target.setTeam(team);
                 collaboratorRepository.save(target);
             }
+        }
+
+        List<TeamVelocity> teamVelocities =
+                teamVelocityService.findByTeamId(id);
+
+        for (TeamVelocity tv : teamVelocities) {
+            teamVelocityService.recalculateTeamVelocity(
+                    tv.getTeam().getId(),
+                    tv.getYear(),
+                    tv.getMonth()
+            );
         }
 
         return collaboratorRepository.findByTeamIdAndActiveTrue(id)
