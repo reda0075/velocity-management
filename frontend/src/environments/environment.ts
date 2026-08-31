@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:8080' // update when a real backend URL exists
+  apiUrl: 'https://velocity-management-1.onrender.com' // update when a real backend URL exists
 };
