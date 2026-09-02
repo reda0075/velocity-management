@@ -2,7 +2,8 @@
   <h1 class="topbar__title">{{ pageTitle() }}</h1>
 
   <div class="topbar__user">
-    <span class="topbar__workspace">Team Workspace</span>
-    <div class="topbar__avatar">?</div>
+    <span class="topbar__workspace">{{ displayName() }}</span>
+    <div class="topbar__avatar">{{ displayName().charAt(0).toUpperCase() }}</div>
+    <button class="topbar__logout" (click)="onLogout()">Logout</button>
   </div>
 </header>

@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Temp files ###
+backend-log.txt
+login.json
+
 ### STS ###
 .apt_generated
 .classpath
