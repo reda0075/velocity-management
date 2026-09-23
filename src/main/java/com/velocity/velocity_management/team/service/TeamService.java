@@ -78,6 +78,20 @@ public class TeamService {
     }
 
     @Transactional(readOnly = true)
+    public TeamResponse getOwnTeam(String username) {
+        Collaborator collaborator = collaboratorRepository.findByUserUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Collaborator profile for user " + username + " not found"
+                ));
+
+        if (collaborator.getTeam() == null) {
+            throw new ResourceNotFoundException("No team is assigned to this collaborator");
+        }
+
+        return teamMapper.toResponse(collaborator.getTeam());
+    }
+
+    @Transactional(readOnly = true)
     public List<CollaboratorResponse> getTeamMembers(Long id) {
 
         if (!teamRepository.existsById(id)) {

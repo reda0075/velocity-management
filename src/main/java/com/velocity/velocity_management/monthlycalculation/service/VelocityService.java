@@ -225,6 +225,19 @@ public class VelocityService {
                 .toList();
     }
 
+    public List<VelocityResponse> getOwnVelocities(String username) {
+
+        Collaborator collaborator = collaboratorRepository.findByUserUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Collaborator profile for user " + username + " not found"
+                ));
+
+        return velocityRepository.findByCollaboratorId(collaborator.getId())
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
 
     public VelocityResponse getVelocityById(Long id) {
 

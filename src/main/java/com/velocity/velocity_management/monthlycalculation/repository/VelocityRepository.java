@@ -27,4 +27,6 @@ public interface VelocityRepository extends JpaRepository<Velocity, Long> {
             Integer year,
             Integer month
     );
+
+    List<Velocity> findByCollaboratorId(Long collaboratorId);
 }

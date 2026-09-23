@@ -1,0 +1,200 @@
+{
+  "tests": [
+    {
+      "role": "COLLABORATOR",
+      "method": "POST",
+      "url": "/api/teams",
+      "body": {"name": "Test"},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "PUT",
+      "url": "/api/teams/1",
+      "body": {"name": "Test"},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "PATCH",
+      "url": "/api/teams/1/activate",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "DELETE",
+      "url": "/api/teams/1",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "POST",
+      "url": "/api/collaborators",
+      "body": {"firstName": "A", "lastName": "B"},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "PUT",
+      "url": "/api/collaborators/1",
+      "body": {"firstName": "A", "lastName": "B"},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "DELETE",
+      "url": "/api/collaborators/1",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "POST",
+      "url": "/api/velocities",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "PUT",
+      "url": "/api/velocities/1",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "PATCH",
+      "url": "/api/velocities/1/validate",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "DELETE",
+      "url": "/api/velocities/1",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "POST",
+      "url": "/api/rituals",
+      "body": {"name": "R"},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "GET",
+      "url": "/api/rituals",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "DELETE",
+      "url": "/api/rituals/1",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "POST",
+      "url": "/api/team-velocities",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "DELETE",
+      "url": "/api/team-velocities/1",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "GET",
+      "url": "/api/reports/velocity?teamId=1&year=2026&month=9",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "GET",
+      "url": "/api/teams",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "GET",
+      "url": "/api/velocities",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "GET",
+      "url": "/api/collaborators",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "ADMIN",
+      "method": "POST",
+      "url": "/api/teams",
+      "body": {"name": "Admin Team"},
+      "expect": 201
+    },
+    {
+      "role": "ADMIN",
+      "method": "GET",
+      "url": "/api/teams",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "ADMIN",
+      "method": "GET",
+      "url": "/api/rituals",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "ADMIN",
+      "method": "GET",
+      "url": "/api/reports/velocity?teamId=1&year=2026&month=9",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "ADMIN",
+      "method": "POST",
+      "url": "/api/rituals",
+      "body": {"name": "R"},
+      "expect": 201
+    },
+    {
+      "role": "ANON",
+      "method": "GET",
+      "url": "/api/teams",
+      "body": {},
+      "expect": 401
+    },
+    {
+      "role": "ANON",
+      "method": "POST",
+      "url": "/api/teams",
+      "body": {"name": "X"},
+      "expect": 401
+    },
+    {
+      "role": "ANON",
+      "method": "GET",
+      "url": "/api/reports/velocity?teamId=1&year=2026&month=9",
+      "body": {},
+      "expect": 401
+    }
+  ]
+}

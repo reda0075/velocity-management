@@ -5,6 +5,8 @@ import com.velocity.velocity_management.monthlycalculation.dto.response.Velocity
 import com.velocity.velocity_management.monthlycalculation.service.VelocityService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +32,13 @@ public class VelocityController {
     @GetMapping
     public List<VelocityResponse> getAllVelocities() {
         return velocityService.getAllVelocities();
+    }
+
+    @GetMapping("/me")
+    public List<VelocityResponse> getOwnVelocities(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        return velocityService.getOwnVelocities(userDetails.getUsername());
     }
 
     @GetMapping("/{id}")

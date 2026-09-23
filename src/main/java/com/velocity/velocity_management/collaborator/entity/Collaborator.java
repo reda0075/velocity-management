@@ -1,6 +1,7 @@
 package com.velocity.velocity_management.collaborator.entity;
 
 
+import com.velocity.velocity_management.auth.entity.User;
 import com.velocity.velocity_management.collaborator.enums.Profile;
 import com.velocity.velocity_management.team.entity.Team;
 import jakarta.persistence.*;
@@ -55,6 +56,10 @@ public class Collaborator {
 
  @Column(nullable = false)
  private LocalDateTime updatedAt;
+
+ @OneToOne(fetch = FetchType.LAZY)
+ @JoinColumn(name = "user_id", unique = true)
+ private User user;
 
 
 }

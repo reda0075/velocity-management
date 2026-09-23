@@ -6,6 +6,8 @@ import com.velocity.velocity_management.collaborator.dto.response.CollaboratorRe
 import com.velocity.velocity_management.collaborator.service.CollaboratorService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +32,13 @@ public class CollaboratorController {
     @GetMapping
     public List<CollaboratorResponse> getAllCollaborators() {
         return collaboratorService.getAllCollaborators();
+    }
+
+    @GetMapping("/me")
+    public CollaboratorResponse getOwnProfile(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        return collaboratorService.getOwnProfile(userDetails.getUsername());
     }
 
     @GetMapping("/{id}")

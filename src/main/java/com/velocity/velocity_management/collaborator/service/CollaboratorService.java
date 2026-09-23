@@ -92,7 +92,7 @@ public class CollaboratorService {
             }
 
     @Transactional(readOnly = true)
-            public CollaboratorResponse getCollaboratorById(Long id) {
+    public CollaboratorResponse getCollaboratorById(Long id) {
 
                 Collaborator collaborator = collaboratorRepository.findById(id)
                         .orElseThrow(() ->
@@ -100,6 +100,16 @@ public class CollaboratorService {
 
                 return collaboratorMapper.toResponse(collaborator);
             }
+
+    @Transactional(readOnly = true)
+    public CollaboratorResponse getOwnProfile(String username) {
+        Collaborator collaborator = collaboratorRepository.findByUserUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Collaborator profile for user " + username + " not found"
+                ));
+
+        return collaboratorMapper.toResponse(collaborator);
+    }
 
     @Transactional
             public CollaboratorResponse updateCollaborator(Long id, UpdateCollaboratorRequest request) {
