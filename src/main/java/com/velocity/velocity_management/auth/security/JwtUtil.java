@@ -21,6 +21,13 @@ public class JwtUtil {
             @Value("${app.jwt.secret}") String jwtSecret,
             @Value("${app.jwt.expiration-ms}") long jwtExpirationMs) {
 
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalStateException(
+                "app.jwt.secret is not configured. Set the JWT_SECRET "
+                + "environment variable (or app.jwt.secret property)."
+            );
+        }
+
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         this.jwtExpirationMs = jwtExpirationMs;
     }

@@ -20,9 +20,9 @@ public class ReportingController {
 
     @GetMapping("/velocity")
     public ResponseEntity<VelocityReportResponse> getVelocityReport(
-            @RequestParam Long teamId,
-            @RequestParam Integer year,
-            @RequestParam Integer month) {
+            @RequestParam("teamId") Long teamId,
+            @RequestParam("year") Integer year,
+            @RequestParam("month") Integer month) {
 
         VelocityReportResponse report =
                 reportingService.generateVelocityReport(
