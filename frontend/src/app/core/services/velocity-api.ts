@@ -13,6 +13,10 @@ export class VelocityApi {
     return this.http.get<Velocity[]>(this.baseUrl);
   }
 
+  getMine(): Observable<Velocity[]> {
+    return this.http.get<Velocity[]>(`${this.baseUrl}/me`);
+  }
+
   getById(id: number): Observable<Velocity> {
     return this.http.get<Velocity>(`${this.baseUrl}/${id}`);
   }

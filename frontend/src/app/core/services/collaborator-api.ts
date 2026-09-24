@@ -13,6 +13,10 @@ export class CollaboratorApi {
     return this.http.get<Collaborator[]>(this.baseUrl);
   }
 
+  getMine(): Observable<Collaborator> {
+    return this.http.get<Collaborator>(`${this.baseUrl}/me`);
+  }
+
   getById(id: number): Observable<Collaborator> {
     return this.http.get<Collaborator>(`${this.baseUrl}/${id}`);
   }

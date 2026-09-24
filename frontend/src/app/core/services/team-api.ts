@@ -14,6 +14,10 @@ export class TeamApi {
     return this.http.get<Team[]>(this.baseUrl);
   }
 
+  getMine(): Observable<Team> {
+    return this.http.get<Team>(`${this.baseUrl}/me`);
+  }
+
   getById(id: number): Observable<Team> {
     return this.http.get<Team>(`${this.baseUrl}/${id}`);
   }

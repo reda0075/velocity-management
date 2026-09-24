@@ -1,11 +1,13 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthRole, AuthService } from '../../../core/services/auth';
 
 const routerDirectives = [RouterLink, RouterLinkActive];
 
 interface NavItem {
   label: string;
   path: string;
+  roles?: AuthRole[];
   icon: string; // SVG path data, kept tiny/inline — no icon library dependency
 }
 
@@ -17,6 +19,7 @@ interface NavItem {
   styleUrl: './sidebar.scss'
 })
 export class Sidebar {
+  private auth = inject(AuthService);
   collapsed = signal(false);
 
   navItems: NavItem[] = [
@@ -26,6 +29,27 @@ export class Sidebar {
     { label: 'Teams', path: '/teams', icon: 'M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0-4a7 7 0 0 0-7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7 7 7 0 0 0-7-7zm0 12a5 5 0 0 1-5-5h10a5 5 0 0 1-5 5z' },
     { label: 'Velocities', path: '/velocities', icon: 'M13 3a1 1 0 0 0-1 1v9.6l-2.3-2.3a1 1 0 1 0-1.4 1.4l4 4a1 1 0 0 0 1.4 0l4-4a1 1 0 1 0-1.4-1.4L14 13.6V4a1 1 0 0 0-1-1zM5 19a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2z' }
   ];
+
+  visibleNavItems = computed(() => {
+    const role = this.auth.currentUser()?.role;
+    if (role === 'ADMIN') {
+      return [
+        ...this.navItems,
+        { label: 'Reporting', path: '/reporting', icon: 'M4 19h16v2H4zm2-3h3V8H6zm5 0h3V4h-3zm5 0h3v-6h-3z' }
+      ];
+    }
+
+    if (role === 'COLLABORATOR') {
+      return [
+        this.navItems[0],
+        { label: 'My Profile', path: '/my-profile', icon: 'M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5z' },
+        { label: 'My Team', path: '/my-team', icon: 'M7 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm10 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20v-2c0-2.2 2.2-4 5-4s5 1.8 5 4v2zm10 0v-2c0-.7-.2-1.4-.5-2 1.1-.8 2.4-1.2 3.5-1.2 2.8 0 5 1.8 5 4V20z' },
+        { label: 'My Velocities', path: '/my-velocities', icon: 'M5 19h14v2H5zm2-3h2V8H7zm4 0h2V4h-2zm4 0h2v-6h-2z' }
+      ];
+    }
+
+    return [];
+  });
 
   toggle(): void {
     this.collapsed.update(v => !v);
