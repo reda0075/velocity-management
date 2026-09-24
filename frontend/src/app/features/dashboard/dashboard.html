@@ -1,0 +1,146 @@
+<div class="page dashboard">
+  <div class="page__header">
+    <div>
+      <h2>Dashboard</h2>
+      <p class="page__description">
+        @if (isManager()) {
+          Team velocity and collaborator summary for the selected period.
+        } @else {
+          Your personal velocity summary.
+        }
+      </p>
+    </div>
+  </div>
+
+  @if (overviewLoading()) {
+    <div class="state state--loading">Loading overview…</div>
+  } @else if (overviewError()) {
+    <div class="state state--error">
+      <p>{{ overviewError() }}</p>
+    </div>
+  }
+
+  @if (isManager()) {
+    <!-- ============ MANAGER VIEW ============ -->
+
+    <div class="kpi-grid">
+      <app-kpi-card label="Active collaborators" [value]="totalCollaborators()" hint="Across all teams" />
+      <app-kpi-card label="Teams" [value]="totalTeams()" hint="Total registered" />
+      <app-kpi-card label="Active teams" [value]="activeTeams()" hint="Currently enabled" />
+      <app-kpi-card
+        label="Calculated velocities"
+        [value]="calculatedMembers()"
+        [hint]="calculatedMembers() === 0 ? 'No calculations yet' : ''"
+      />
+      <app-kpi-card label="Pending validations" [value]="pendingValidations()" hint="Awaiting review" />
+      <app-kpi-card label="Validated velocities" [value]="validatedVelocities()" hint="Confirmed" />
+      <app-kpi-card label="Team velocity" [value]="formatRatio(teamVelocity())" hint="Average per member" />
+      <app-kpi-card label="Missing calculations" [value]="missingCalculations()" hint="Not yet calculated" />
+    </div>
+
+    <div class="card filter-card">
+      <div class="filter-card__row">
+        <div class="field">
+          <label class="field__label" for="team-select">Team</label>
+          <select id="team-select" class="field__input" (change)="selectTeam($any($event.target).value)">
+            <option [value]="" [selected]="selectedTeamId() === null">All teams</option>
+            @for (team of teams(); track team.id) {
+              <option [value]="team.id" [selected]="selectedTeamId() === team.id">{{ team.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="year-select">Year</label>
+          <select id="year-select" class="field__input" (change)="onYearChange($any($event.target).value)">
+            @for (year of years; track year) {
+              <option [value]="year" [selected]="selectedYear() === year">{{ year }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="month-select">Month</label>
+          <select id="month-select" class="field__input" (change)="onMonthChange($any($event.target).value)">
+            @for (month of months; track month; let i = $index) {
+              <option [value]="i + 1" [selected]="selectedMonth() === i + 1">{{ month }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-card__meta">
+        <span class="filter-card__team">{{ selectedTeamName() }}</span>
+        <span class="filter-card__period">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</span>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      @if (reportLoading()) {
+        <div class="state state--loading">Loading velocity report…</div>
+      } @else if (reportError()) {
+        <div class="state state--error">
+          <p>Could not load the velocity report for this team and period.</p>
+          <button class="btn btn-secondary" type="button" (click)="retryReport()">Retry</button>
+        </div>
+      } @else if (reportEmpty()) {
+        <div class="state state--empty">
+          <p>No velocity calculations exist for {{ selectedTeamName() }} in {{ months[selectedMonth() - 1] }} {{ selectedYear() }}.</p>
+        </div>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Collaborator</th>
+              <th>Profile</th>
+              <th>Velocity</th>
+              <th>Ritual time</th>
+              <th>Effective days</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of report()!.collaborators; track c.collaboratorId) {
+              <tr>
+                <td>{{ collaboratorDisplayName(c) }}</td>
+                <td>{{ c.profile }}</td>
+                <td class="figure">{{ formatRatio(c.velocity) }}</td>
+                <td class="figure">{{ formatRatio(c.ritualTimeHours) }} h</td>
+                <td class="figure">{{ formatRatio(c.effectiveWorkingDays) }}</td>
+                <td>
+                  <span [class]="statusClass(c.status)">{{ statusLabel(c.status) }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  @if (!isManager()) {
+    <!-- ============ COLLABORATOR VIEW ============ -->
+    <div class="card personal-card">
+      <div class="personal-card__header">
+        <div class="personal-card__avatar">
+          {{ currentUsername().charAt(0).toUpperCase() }}
+        </div>
+        <div>
+          <h3>{{ currentUsername() }}</h3>
+          <p class="personal-card__role">Collaborator</p>
+        </div>
+      </div>
+
+      <p class="personal-card__note">
+        Manager-level metrics are restricted to administrators. Use
+        <a routerLink="/my-profile">My Profile</a>,
+        <a routerLink="/my-team">My Team</a>, and
+        <a routerLink="/my-velocities">My Velocities</a> for your personal data.
+      </p>
+    </div>
+  }
+
+  <div class="dashboard__footer">
+    <a class="dashboard__link" routerLink="/velocities">Manage velocities →</a>
+  </div>
+</div>
