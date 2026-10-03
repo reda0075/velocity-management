@@ -35,6 +35,43 @@ function flushOverview(httpMock: HttpTestingController): void {
   httpMock.expectOne((r: HttpRequest<unknown>) => r.url.endsWith('/api/team-velocities')).flush([]);
 }
 
+const COLLAB_PROFILE = {
+  id: 1, matricule: 'A1', firstName: 'A', lastName: 'B', profile: 'DEV',
+  teamId: 1, teamName: 'Alpha', active: true, createdAt: '', updatedAt: ''
+};
+
+const velocityFor = (month: number, status: 'PENDING_VALIDATION' | 'VALIDATED' = 'PENDING_VALIDATION') => ({
+  id: month, collaboratorId: 1, year: new Date().getFullYear(), month, workingDays: 20, velocity: 120,
+  rituals: [], totalRitualTimeHours: 2, ritualTimeDays: 0.25, effectiveWorkingDays: 19.75,
+  velocityRatio: 6, status, createdAt: '', updatedAt: ''
+});
+
+const now = new Date();
+const CURRENT_MONTH_VELOCITY = velocityFor(now.getMonth() + 1);
+
+/** Flush the personal profile + velocity calls made for a collaborator. */
+function flushCollaborator(
+  httpMock: HttpTestingController,
+  profile: Record<string, unknown> = COLLAB_PROFILE,
+  velocities: unknown[] = [CURRENT_MONTH_VELOCITY]
+): void {
+  httpMock.expectOne((r: HttpRequest<unknown>) => r.url.endsWith('/api/collaborators/me')).flush(profile);
+  httpMock.expectOne((r: HttpRequest<unknown>) => r.url.endsWith('/api/velocities/me')).flush(velocities);
+}
+
+/** Admin-only endpoints a collaborator must never trigger. */
+const ADMIN_ONLY = ['/api/collaborators', '/api/teams', '/api/rituals', '/api/velocities',
+  '/api/team-velocities', '/api/reports/velocity'];
+
+/**
+ * Fails if a collaborator left an admin-only request pending. Any unexpected
+ * request stays in the queue and is rejected by verify().
+ */
+function expectNoAdminRequests(httpMock: HttpTestingController): void {
+  const pending = httpMock.match((r) => ADMIN_ONLY.some(p => r.url.endsWith(p)));
+  expect(pending.length).toBe(0);
+}
+
 describe('Dashboard', () => {
   let httpMock: HttpTestingController;
   let auth: AuthService;
@@ -138,8 +175,10 @@ describe('Dashboard', () => {
   it('does not expose manager metrics to a collaborator', () => {
     loginAs('COLLABORATOR');
     const fixture = TestBed.createComponent(Dashboard);
-    flushOverview(httpMock);
-    // No report request is made for collaborators — the view is personal only.
+    // Collaborators load their own profile and velocity history.
+    flushCollaborator(httpMock);
+    expectNoAdminRequests(httpMock);
+
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
@@ -147,5 +186,113 @@ describe('Dashboard', () => {
     expect(compiled.querySelector('.filter-card')).toBeFalsy();
     expect(compiled.querySelector('.personal-card')).toBeTruthy();
     expect(compiled.querySelector('.personal-card')?.textContent).toContain('Collaborator');
+    expect(compiled.querySelector('.personal-card')?.textContent).toContain('A1');
+    expect(compiled.querySelector('.personal-card')?.textContent).toContain('Pending validation');
+  });
+
+  it('renders every required collaborator field from the backend payloads', () => {
+    loginAs('COLLABORATOR');
+    const fixture = TestBed.createComponent(Dashboard);
+    flushCollaborator(httpMock);
+    expectNoAdminRequests(httpMock);
+
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+    // Identity fields come from /api/collaborators/me.
+    expect(text).toContain('A B');            // name
+    expect(text).toContain('A1');             // matricule
+    expect(text).toContain('DEV');            // profile
+    expect(text).toContain('Alpha');          // team
+
+    // Velocity fields come from /api/velocities/me, never recomputed in Angular.
+    expect(text).toContain('120');            // current-month velocity, not 120.00
+    expect(text).toContain('6.00');           // velocity ratio
+    expect(text).toContain('2.00 h');         // ritual time
+    expect(text).toContain('19.75');          // effective working days
+    expect(text).toContain('Pending validation');
+  });
+
+  it('renders a validated velocity with the validated badge', () => {
+    loginAs('COLLABORATOR');
+    const fixture = TestBed.createComponent(Dashboard);
+    flushCollaborator(httpMock, COLLAB_PROFILE, [velocityFor(now.getMonth() + 1, 'VALIDATED')]);
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.badge-success')?.textContent).toContain('Validated');
+    expect(compiled.querySelector('.badge-warning')).toBeFalsy();
+  });
+
+  it('shows loading states before the personal payloads arrive', () => {
+    loginAs('COLLABORATOR');
+    const fixture = TestBed.createComponent(Dashboard);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Loading profile');
+    expect(compiled.textContent).toContain('Loading current month');
+    expect(compiled.textContent).toContain('Loading history');
+
+    flushCollaborator(httpMock);
+    fixture.detectChanges();
+    expect(compiled.textContent).not.toContain('Loading profile');
+  });
+
+  it('shows an error state with retry when the velocity API fails', () => {
+    loginAs('COLLABORATOR');
+    const fixture = TestBed.createComponent(Dashboard);
+    httpMock.expectOne((r: HttpRequest<unknown>) => r.url.endsWith('/api/collaborators/me')).flush(COLLAB_PROFILE);
+    httpMock.expectOne((r: HttpRequest<unknown>) => r.url.endsWith('/api/velocities/me')).flush(
+      { message: 'boom' }, { status: 500, statusText: 'Server Error' }
+    );
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.textContent).toContain('Your velocity data could not be loaded.');
+    expect(compiled.textContent).toContain('Your velocity history could not be loaded.');
+    expect(compiled.querySelectorAll('.state--error').length).toBe(2);
+    // A failed request must not masquerade as an empty history.
+    expect(compiled.textContent).not.toContain('No velocity history is available');
+  });
+
+  it('shows an empty state when the collaborator has no velocity history', () => {
+    loginAs('COLLABORATOR');
+    const fixture = TestBed.createComponent(Dashboard);
+    flushCollaborator(httpMock, COLLAB_PROFILE, []);
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.personal-card')).toBeTruthy();
+    const empties = Array.from(compiled.querySelectorAll('.state--empty')).map(e => e.textContent ?? '');
+    expect(empties.some(t => t.includes('No velocity calculation exists'))).toBe(true);
+    expect(empties.some(t => t.includes('No velocity history is available'))).toBe(true);
+  });
+
+  it('requests only the personal endpoints for a collaborator', () => {
+    loginAs('COLLABORATOR');
+    TestBed.createComponent(Dashboard);
+
+    // Only the two /me endpoints resolve; an admin-only request would stay
+    // pending and fail the afterEach verify().
+    flushCollaborator(httpMock);
+    expectNoAdminRequests(httpMock);
+  });
+
+  it('never links a collaborator to an admin-only route', () => {
+    loginAs('COLLABORATOR');
+    const fixture = TestBed.createComponent(Dashboard);
+    flushCollaborator(httpMock, COLLAB_PROFILE, []);
+    expectNoAdminRequests(httpMock);
+
+    fixture.detectChanges();
+    const hrefs = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('a'))
+      .map(a => a.getAttribute('href'));
+
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      expect(['/velocities', '/collaborators', '/rituals', '/teams', '/reporting']).not.toContain(href);
+    }
   });
 });

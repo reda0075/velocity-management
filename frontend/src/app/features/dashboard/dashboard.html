@@ -131,16 +131,126 @@
         </div>
       </div>
 
+      <div class="personal-card__section">
+        <h4>Profile</h4>
+        @if (profileLoading()) {
+          <div class="state state--loading">Loading profile…</div>
+        } @else if (profileError()) {
+          <div class="state state--error">
+            <p>Your profile could not be loaded.</p>
+            <button class="btn btn-secondary" type="button" (click)="retryCollaborator()">Retry</button>
+          </div>
+        } @else if (profile(); as collaborator) {
+          <dl class="personal-card__dl">
+            <dt>Name</dt><dd>{{ collaborator.firstName }} {{ collaborator.lastName }}</dd>
+            <dt>Matricule</dt><dd>{{ collaborator.matricule }}</dd>
+            <dt>Profile</dt><dd>{{ collaborator.profile }}</dd>
+            <dt>Team</dt><dd>{{ collaborator.teamName || 'No team assigned' }}</dd>
+          </dl>
+        } @else {
+          <div class="state state--empty"><p>No profile available.</p></div>
+        }
+      </div>
+
+      <div class="personal-card__section">
+        <h4>Current month — {{ monthName(currentMonth) }} {{ currentYear }}</h4>
+        @if (velocitiesLoading()) {
+          <div class="state state--loading">Loading current month…</div>
+        } @else if (velocitiesError()) {
+          <div class="state state--error">
+            <p>Your velocity data could not be loaded.</p>
+            <button class="btn btn-secondary" type="button" (click)="retryCollaborator()">Retry</button>
+          </div>
+        } @else if (currentVelocity(); as velocity) {
+          <div class="personal-card__grid">
+            <div class="personal-card__item">
+              <span class="personal-card__label">Velocity</span>
+              <span class="personal-card__value">{{ formatCount(velocity.velocity) }}</span>
+            </div>
+            <div class="personal-card__item">
+              <span class="personal-card__label">Velocity ratio</span>
+              <span class="personal-card__value">{{ formatRatio(velocity.velocityRatio) }}</span>
+            </div>
+            <div class="personal-card__item">
+              <span class="personal-card__label">Ritual time</span>
+              <span class="personal-card__value">{{ formatRatio(velocity.totalRitualTimeHours) }} h</span>
+            </div>
+            <div class="personal-card__item">
+              <span class="personal-card__label">Effective days</span>
+              <span class="personal-card__value">{{ formatRatio(velocity.effectiveWorkingDays) }}</span>
+            </div>
+            <div class="personal-card__item">
+              <span class="personal-card__label">Working days</span>
+              <span class="personal-card__value">{{ formatCount(velocity.workingDays) }}</span>
+            </div>
+            <div class="personal-card__item">
+              <span class="personal-card__label">Validation status</span>
+              <span class="personal-card__value">
+                <span [class]="statusClass(velocity.status)">{{ statusLabel(velocity.status) }}</span>
+              </span>
+            </div>
+          </div>
+        } @else {
+          <div class="state state--empty">
+            <p>No velocity calculation exists for {{ monthName(currentMonth) }} {{ currentYear }}.</p>
+            <a class="btn btn-primary" routerLink="/my-velocities">View my velocities →</a>
+          </div>
+        }
+      </div>
+
+      <div class="personal-card__section">
+        <h4>Previous velocity history</h4>
+        @if (velocitiesLoading()) {
+          <div class="state state--loading">Loading history…</div>
+        } @else if (velocitiesError()) {
+          <div class="state state--error">
+            <p>Your velocity history could not be loaded.</p>
+            <button class="btn btn-secondary" type="button" (click)="retryCollaborator()">Retry</button>
+          </div>
+        } @else if (history().length) {
+          <table class="table personal-card__table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Velocity</th>
+                <th>Ratio</th>
+                <th>Ritual time</th>
+                <th>Effective days</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of history(); track v.id) {
+                <tr>
+                  <td>{{ periodLabel(v) }}</td>
+                  <td class="figure">{{ formatCount(v.velocity) }}</td>
+                  <td class="figure">{{ formatRatio(v.velocityRatio) }}</td>
+                  <td class="figure">{{ formatRatio(v.totalRitualTimeHours) }} h</td>
+                  <td class="figure">{{ formatRatio(v.effectiveWorkingDays) }}</td>
+                  <td>
+                    <span [class]="statusClass(v.status)">{{ statusLabel(v.status) }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="state state--empty"><p>No velocity history is available.</p></div>
+        }
+      </div>
+
       <p class="personal-card__note">
-        Manager-level metrics are restricted to administrators. Use
-        <a routerLink="/my-profile">My Profile</a>,
-        <a routerLink="/my-team">My Team</a>, and
-        <a routerLink="/my-velocities">My Velocities</a> for your personal data.
+        Manager-level metrics are restricted to administrators. You cannot modify
+        administrative information from this view.
       </p>
     </div>
   }
 
   <div class="dashboard__footer">
-    <a class="dashboard__link" routerLink="/velocities">Manage velocities →</a>
+    @if (isManager()) {
+      <a class="dashboard__link" routerLink="/velocities">Manage velocities →</a>
+    } @else {
+      <a class="dashboard__link" routerLink="/my-velocities">View my velocities →</a>
+    }
   </div>
 </div>

@@ -1,14 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth';
 import { CollaboratorApi } from '../../core/services/collaborator-api';
 import { TeamApi } from '../../core/services/team-api';
-import { TeamVelocityApi } from '../../core/services/team-velocity-api';
+import { VelocityApi } from '../../core/services/velocity-api';
 import { ReportingApi } from '../../core/services/reporting-api';
+import { TeamVelocityApi } from '../../core/services/team-velocity-api';
 import { Collaborator } from '../../core/models/collaborator';
 import { Team } from '../../core/models/team';
 import { VelocityReportResponse } from '../../core/models/report';
+import { Velocity } from '../../core/models/velocity';
 import { TeamVelocity } from '../../core/models/team-velocity';
 import { extractErrorMessage } from '../../core/utils/http-error';
 import { KpiCard } from './kpi-card';
@@ -35,17 +37,23 @@ export class Dashboard {
   private collaboratorApi = inject(CollaboratorApi);
   private teamApi = inject(TeamApi);
   private reportingApi = inject(ReportingApi);
+  private velocityApi = inject(VelocityApi);
   private teamVelocityApi = inject(TeamVelocityApi);
 
   readonly months = MONTHS;
   readonly years = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
 
+  readonly currentYear = CURRENT_YEAR;
+  readonly currentMonth = CURRENT_MONTH;
+
   // ---- Selection ----
+
   selectedTeamId = signal<number | null>(null);
   selectedYear = signal<number>(CURRENT_YEAR);
   selectedMonth = signal<number>(CURRENT_MONTH);
 
   // ---- Overview data (role-aware) ----
+
   collaborators = signal<Collaborator[]>([]);
   teams = signal<Team[]>([]);
   teamVelocities = signal<TeamVelocity[]>([]);
@@ -54,17 +62,28 @@ export class Dashboard {
   overviewError = signal<string | null>(null);
 
   // ---- Selected-team report ----
+
   report = signal<VelocityReportResponse | null>(null);
   reportState = signal<DashboardState>('loading');
 
+  // ---- Collaborator personal view ----
+  profile = signal<Collaborator | null>(null);
+  profileState = signal<DashboardState>('loading');
+  velocities = signal<Velocity[]>([]);
+  velocitiesState = signal<DashboardState>('loading');
+
   constructor() {
-    this.loadOverview();
+    if (this.isManager()) {
+      this.loadOverview();
+    } else {
+      this.loadCollaboratorData();
+    }
   }
 
-  // ---- Computed ----
-
   /** True for the manager (ADMIN) view. Collaborators see a personal summary only. */
-  isManager = computed(() => this.auth.hasRole('ADMIN'));
+  readonly isManager = computed(() => this.auth.hasRole('ADMIN'));
+
+  // ---- Computed ----
 
   totalCollaborators = computed(() => this.collaborators().filter(c => c.active).length);
   totalTeams = computed(() => this.teams().length);
@@ -94,6 +113,26 @@ export class Dashboard {
     if (!r) return 0;
     return Math.max(0, r.teamMembers - r.calculatedMembers);
   });
+
+  // ---- Collaborator view computed ----
+
+  profileLoading = computed(() => this.profileState() === 'loading');
+  profileEmpty = computed(() => this.profileState() === 'empty');
+  profileError = computed(() => this.profileState() === 'error');
+
+  velocitiesLoading = computed(() => this.velocitiesState() === 'loading');
+  velocitiesReady = computed(() => this.velocitiesState() === 'ready');
+  velocitiesError = computed(() => this.velocitiesState() === 'error');
+
+  currentVelocity = computed<Velocity | null>(() => {
+    const year = CURRENT_YEAR;
+    const month = CURRENT_MONTH;
+    return this.velocities().find(v => v.year === year && v.month === month) ?? null;
+  });
+
+  history = computed(() => [...this.velocities()].sort((a, b) =>
+    b.year - a.year || b.month - a.month
+  ));
 
   // ---- Selection handlers ----
 
@@ -131,22 +170,16 @@ export class Dashboard {
         const active = data.find(t => t.active);
         this.selectedTeamId.set(active?.id ?? (data.length ? data[0].id : null));
         this.overviewLoading.set(false);
-        // The report is manager-only: collaborators never request it.
-        if (this.isManager()) {
-          this.loadReport();
-        } else {
-          this.reportState.set('empty');
-        }
+        this.loadReport();
       },
       error: (err: HttpErrorResponse) => {
         this.overviewError.set(extractErrorMessage(err, 'Could not load teams. Is the backend running?'));
         this.overviewLoading.set(false);
-        this.reportState.set('error');
       }
     });
 
     this.teamVelocityApi.getAll().subscribe({
-      next: (data) => this.teamVelocities.set(data),
+      next: (data: TeamVelocity[]) => this.teamVelocities.set(data),
       error: () => this.teamVelocities.set([])
     });
   }
@@ -184,14 +217,49 @@ export class Dashboard {
 
   // ---- Helpers ----
 
+  private loadCollaboratorData(): void {
+    this.profileState.set('loading');
+    this.velocitiesState.set('loading');
+
+    this.collaboratorApi.getMine().subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.profileState.set('ready');
+      },
+      error: () => {
+        this.profile.set(null);
+        this.profileState.set('error');
+      }
+    });
+
+    this.velocityApi.getMine().subscribe({
+      next: (velocities) => {
+        this.velocities.set(velocities);
+        this.velocitiesState.set(velocities.length ? 'ready' : 'empty');
+      },
+      error: () => {
+        this.velocities.set([]);
+        this.velocitiesState.set('error');
+      }
+    });
+  }
+
+  retryCollaborator(): void {
+    this.loadCollaboratorData();
+  }
+
   formatRatio(value: number | null | undefined): string {
     return value == null ? '—' : Number(value).toFixed(2);
+  }
+
+  formatCount(value: number | null | undefined): string {
+    return value == null ? '—' : new Intl.NumberFormat('en-US').format(Number(value));
   }
 
   statusLabel(status: string | null): string {
     switch (status) {
       case 'VALIDATED': return 'Validated';
-      case 'PENDING_VALIDATION': return 'Pending';
+      case 'PENDING_VALIDATION': return 'Pending validation';
       default: return 'No calculation';
     }
   }
@@ -202,6 +270,14 @@ export class Dashboard {
       case 'PENDING_VALIDATION': return 'badge badge-warning';
       default: return 'badge badge-neutral';
     }
+  }
+
+  monthName(month: number): string {
+    return MONTHS[month - 1] ?? String(month);
+  }
+
+  periodLabel(v: Velocity): string {
+    return `${this.monthName(v.month)} ${v.year}`;
   }
 
   collaboratorDisplayName(c: { firstName: string; lastName: string }): string {
