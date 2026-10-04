@@ -1,5 +1,6 @@
 package com.velocity.velocity_management.collaborator.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.velocity.velocity_management.collaborator.enums.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,5 +27,9 @@ public class CollaboratorResponse {
     private boolean active ;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Populated by the creation response only, so it is omitted from every other payload.
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private InitialCredentials initialCredentials;
 
 }

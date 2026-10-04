@@ -1,4 +1,38 @@
-<app-modal [title]="isEditMode ? 'Edit Collaborator' : 'Add Collaborator'" (closed)="closed.emit()">
+<app-modal [title]="showsCredentials ? 'Collaborator created' : (isEditMode ? 'Edit Collaborator' : 'Add Collaborator')" (closed)="closed.emit()">
+  @if (credentials(); as creds) {
+    <div class="credentials">
+      <p class="credentials__title">Collaborator created successfully</p>
+      <p class="credentials__hint">Copy these credentials now. The password is never shown again.</p>
+
+      <div class="credentials__row">
+        <span class="credentials__label">Matricule</span>
+        <code class="credentials__value">{{ creds.matricule }}</code>
+        <button class="btn btn-secondary" type="button" (click)="copy(creds.matricule, 'matricule')">
+          {{ copiedField() === 'matricule' ? 'Copied' : 'Copy' }}
+        </button>
+      </div>
+
+      <div class="credentials__row">
+        <span class="credentials__label">Username</span>
+        <code class="credentials__value">{{ creds.username }}</code>
+        <button class="btn btn-secondary" type="button" (click)="copy(creds.username, 'username')">
+          {{ copiedField() === 'username' ? 'Copied' : 'Copy' }}
+        </button>
+      </div>
+
+      <div class="credentials__row">
+        <span class="credentials__label">Temporary password</span>
+        <code class="credentials__value">{{ creds.temporaryPassword }}</code>
+        <button class="btn btn-secondary" type="button" (click)="copy(creds.temporaryPassword, 'password')">
+          {{ copiedField() === 'password' ? 'Copied' : 'Copy' }}
+        </button>
+      </div>
+
+      <div class="collab-form__actions">
+        <button class="btn btn-primary" type="button" (click)="done()">Done</button>
+      </div>
+    </div>
+  } @else {
   <form [formGroup]="form" (ngSubmit)="submit()" class="collab-form">
 
     @if (isEditMode) {
@@ -55,4 +89,5 @@
       </button>
     </div>
   </form>
+  }
 </app-modal>

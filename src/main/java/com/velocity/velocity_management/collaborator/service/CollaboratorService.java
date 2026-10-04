@@ -1,12 +1,17 @@
 package com.velocity.velocity_management.collaborator.service;
 
+import com.velocity.velocity_management.auth.entity.User;
+import com.velocity.velocity_management.auth.enums.Role;
+import com.velocity.velocity_management.auth.repository.UserRepository;
 import com.velocity.velocity_management.collaborator.dto.request.CreateCollaboratorRequest;
 import com.velocity.velocity_management.collaborator.dto.request.UpdateCollaboratorRequest;
 import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
+import com.velocity.velocity_management.collaborator.dto.response.InitialCredentials;
 import com.velocity.velocity_management.collaborator.entity.Collaborator;
 import com.velocity.velocity_management.collaborator.mapper.CollaboratorMapper;
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import com.velocity.velocity_management.team.entity.Team;
 import com.velocity.velocity_management.team.repository.TeamRepository;
@@ -20,11 +25,17 @@ public class CollaboratorService {
     private final CollaboratorRepository collaboratorRepository;
     private final CollaboratorMapper collaboratorMapper;
     private final TeamRepository teamRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final InitialCredentialsGenerator initialCredentialsGenerator;
 
-    public CollaboratorService(CollaboratorRepository collaboratorRepository, CollaboratorMapper collaboratorMapper, TeamRepository teamRepository) {
+    public CollaboratorService(CollaboratorRepository collaboratorRepository, CollaboratorMapper collaboratorMapper, TeamRepository teamRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, InitialCredentialsGenerator initialCredentialsGenerator) {
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
         this.teamRepository = teamRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.initialCredentialsGenerator = initialCredentialsGenerator;
     }
 
     @Transactional
@@ -49,9 +60,21 @@ public class CollaboratorService {
 
                 collaborator.setUpdatedAt(now);
 
+                // The matricule doubles as the login: username = matricule,
+                // password = matricule + "_" + 4 random digits, stored BCrypt-hashed.
+                InitialCredentials credentials = initialCredentialsGenerator.generate(collaborator.getMatricule());
+
+                User user = new User();
+                user.setUsername(credentials.username());
+                user.setPassword(passwordEncoder.encode(credentials.temporaryPassword()));
+                user.setRole(Role.COLLABORATOR);
+                collaborator.setUser(userRepository.save(user));
+
                 collaborator = collaboratorRepository.save(collaborator);
 
-                return collaboratorMapper.toResponse(collaborator);
+                CollaboratorResponse response = collaboratorMapper.toResponse(collaborator);
+                response.setInitialCredentials(credentials);
+                return response;
             }
 
 

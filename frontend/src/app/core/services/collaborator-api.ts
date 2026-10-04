@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Collaborator, CollaboratorRequest } from '../models/collaborator';
+import { Collaborator, CollaboratorCreated, CollaboratorRequest } from '../models/collaborator';
 
 @Injectable({ providedIn: 'root' })
 export class CollaboratorApi {
@@ -21,8 +21,8 @@ export class CollaboratorApi {
     return this.http.get<Collaborator>(`${this.baseUrl}/${id}`);
   }
 
-  create(payload: CollaboratorRequest): Observable<Collaborator> {
-    return this.http.post<Collaborator>(this.baseUrl, payload);
+  create(payload: CollaboratorRequest): Observable<CollaboratorCreated> {
+    return this.http.post<CollaboratorCreated>(this.baseUrl, payload);
   }
 
   update(id: number, payload: CollaboratorRequest): Observable<Collaborator> {
