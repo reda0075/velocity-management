@@ -5,6 +5,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Dashboard } from './dashboard';
 import { AuthService } from '../../core/services/auth';
+import { currentMoroccoPeriod } from '../../core/utils/morocco-date';
 
 const validToken = (expiresAt = Math.floor(Date.now() / 1000) + 3600) =>
   `header.${btoa(JSON.stringify({ exp: expiresAt }))}.signature`;
@@ -41,13 +42,13 @@ const COLLAB_PROFILE = {
 };
 
 const velocityFor = (month: number, status: 'PENDING_VALIDATION' | 'VALIDATED' = 'PENDING_VALIDATION') => ({
-  id: month, collaboratorId: 1, year: new Date().getFullYear(), month, workingDays: 20, velocity: 120,
+  id: month, collaboratorId: 1, year: CURRENT_PERIOD.year, month, workingDays: 20, velocity: 120,
   rituals: [], totalRitualTimeHours: 2, ritualTimeDays: 0.25, effectiveWorkingDays: 19.75,
   velocityRatio: 6, status, createdAt: '', updatedAt: ''
 });
 
-const now = new Date();
-const CURRENT_MONTH_VELOCITY = velocityFor(now.getMonth() + 1);
+const CURRENT_PERIOD = currentMoroccoPeriod();
+const CURRENT_MONTH_VELOCITY = velocityFor(CURRENT_PERIOD.month);
 
 /** Flush the personal profile + velocity calls made for a collaborator. */
 function flushCollaborator(
@@ -216,7 +217,7 @@ describe('Dashboard', () => {
   it('renders a validated velocity with the validated badge', () => {
     loginAs('COLLABORATOR');
     const fixture = TestBed.createComponent(Dashboard);
-    flushCollaborator(httpMock, COLLAB_PROFILE, [velocityFor(now.getMonth() + 1, 'VALIDATED')]);
+    flushCollaborator(httpMock, COLLAB_PROFILE, [velocityFor(CURRENT_PERIOD.month, 'VALIDATED')]);
 
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;

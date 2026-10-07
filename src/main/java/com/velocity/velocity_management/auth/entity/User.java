@@ -23,6 +23,15 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    /**
+     * AES-GCM encrypted copy of the initial password issued when this user was created,
+     * kept only so an administrator can display it again. Null for users predating this
+     * field. Never used to authenticate: {@link #password} stays the only secret that is
+     * compared, and it still holds only the BCrypt hash.
+     */
+    @Column(name = "encrypted_initial_password", length = 255)
+    private String encryptedInitialPassword;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

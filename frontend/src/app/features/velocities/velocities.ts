@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, OnInit, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { VelocityApi } from '../../core/services/velocity-api';
@@ -15,8 +15,15 @@ import { VelocityViewDialog } from './velocity-view-dialog/velocity-view-dialog'
 import { TeamVelocityFormDialog } from './team-velocity-form-dialog/team-velocity-form-dialog';
 import { TeamVelocityDetailDialog } from './team-velocity-detail-dialog/team-velocity-detail-dialog';
 import { ConfirmDialog } from '../../shared/dialogs/confirm-dialog/confirm-dialog';
+import { currentMoroccoPeriod } from '../../core/utils/morocco-date';
 
 type Mode = 'collaborator' | 'team';
+
+// Velocities are tracked per month in Morocco: the default period shown on
+// this page is the current month in Africa/Casablanca, not the browser locale.
+const CURRENT_PERIOD = currentMoroccoPeriod();
+const CURRENT_YEAR = CURRENT_PERIOD.year;
+const CURRENT_MONTH = CURRENT_PERIOD.month;
 
 @Component({
   selector: 'app-velocities',
@@ -38,6 +45,10 @@ export class Velocities implements OnInit {
   collaboratorsMap = signal<Map<number, Collaborator>>(new Map());
   loading = signal(true);
   loadError = signal<string | null>(null);
+
+  searchText = signal('');
+  selectedYear = signal<number>(CURRENT_YEAR);
+  selectedMonth = signal<number>(CURRENT_MONTH);
 
   validatingId = signal<number | null>(null);
 
@@ -84,6 +95,14 @@ export class Velocities implements OnInit {
     this.mode.set(m);
     this.closeMenu();
     this.closeTeamMenu();
+  }
+
+  onYearChange(value: string | number): void {
+    this.selectedYear.set(Number(value));
+  }
+
+  onMonthChange(value: string | number): void {
+    this.selectedMonth.set(Number(value));
   }
 
   // ---- Collaborator velocity ----
@@ -293,6 +312,32 @@ export class Velocities implements OnInit {
       }
     });
   }
+
+  months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  readonly years = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
+
+  readonly filteredVelocities = computed(() => {
+    const q = this.searchText().trim().toLowerCase();
+    return this.velocities().filter(v => {
+      if (v.year !== this.selectedYear()) return false;
+      if (v.month !== this.selectedMonth()) return false;
+      if (q) {
+        const name = this.getCollaboratorName(v.collaboratorId).toLowerCase();
+        if (!name.includes(q) && !String(v.year).includes(q) && !this.monthName(v.month).toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  });
+
+  readonly filteredTeamVelocities = computed(() => {
+    const q = this.searchText().trim().toLowerCase();
+    return this.teamVelocities().filter(tv => {
+      if (tv.year !== this.selectedYear()) return false;
+      if (tv.month !== this.selectedMonth()) return false;
+      if (q && !tv.teamName.toLowerCase().includes(q) && !String(tv.year).includes(q) && !this.monthName(tv.month).toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
 
   // ---- Shared helpers ----
 

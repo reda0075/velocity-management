@@ -22,6 +22,37 @@
       <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
     </div>
 
+    <div class="filter-bar">
+      <div class="filter-bar__group">
+        <label class="filter-bar__label" for="vel-search">Search collaborator</label>
+        <input id="vel-search" class="filter-bar__input" type="text"
+               [value]="searchText()"
+               (input)="searchText.set($any($event.target).value)"
+               placeholder="Name or matricule…" />
+      </div>
+
+      <div class="filter-bar__group">
+        <label class="filter-bar__label" for="vel-year">Year</label>
+        <select id="vel-year" class="filter-bar__select" (change)="onYearChange($any($event.target).value)">
+          @for (year of years; track year) {
+            <option [value]="year" [selected]="selectedYear() === year">{{ year }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-bar__group">
+        <label class="filter-bar__label" for="vel-month">Month</label>
+        <select id="vel-month" class="filter-bar__select" (change)="onMonthChange($any($event.target).value)">
+          @for (month of months; track month; let i = $index) {
+            <option [value]="i + 1" [selected]="selectedMonth() === i + 1">{{ month }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-bar__spacer"></div>
+      <span class="filter-bar__count">{{ filteredVelocities().length }} of {{ velocities().length }} shown</span>
+    </div>
+
     <div class="card table-card">
       @if (loading()) {
         <div class="state state--loading">Loading velocities...</div>
@@ -34,6 +65,11 @@
         <div class="state state--empty">
           <p>No velocity calculations yet.</p>
           <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ New Calculation</button>
+        </div>
+      } @else if (filteredVelocities().length === 0) {
+        <div class="state state--empty">
+          <p>No calculations for that month: {{ monthName(selectedMonth()) }} {{ selectedYear() }}.</p>
+          <p style="font-size:12px;color:var(--color-text-muted);">Calculations from other periods are hidden. Change the month or year to see them.</p>
         </div>
       } @else {
         <table class="table">
@@ -53,7 +89,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (v of velocities(); track v.id) {
+            @for (v of filteredVelocities(); track v.id) {
               <tr>
                 <td>{{ getCollaboratorName(v.collaboratorId) }}</td>
                 <td class="figure">{{ v.year }}</td>
@@ -101,6 +137,37 @@
       <button class="btn btn-primary" type="button" (click)="openCreateTeamDialog()">+ New Calculation</button>
     </div>
 
+    <div class="filter-bar">
+      <div class="filter-bar__group">
+        <label class="filter-bar__label" for="tvel-search">Search team</label>
+        <input id="tvel-search" class="filter-bar__input" type="text"
+               [value]="searchText()"
+               (input)="searchText.set($any($event.target).value)"
+               placeholder="Team name…" />
+      </div>
+
+      <div class="filter-bar__group">
+        <label class="filter-bar__label" for="tvel-year">Year</label>
+        <select id="tvel-year" class="filter-bar__select" (change)="onYearChange($any($event.target).value)">
+          @for (year of years; track year) {
+            <option [value]="year" [selected]="selectedYear() === year">{{ year }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-bar__group">
+        <label class="filter-bar__label" for="tvel-month">Month</label>
+        <select id="tvel-month" class="filter-bar__select" (change)="onMonthChange($any($event.target).value)">
+          @for (month of months; track month; let i = $index) {
+            <option [value]="i + 1" [selected]="selectedMonth() === i + 1">{{ month }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-bar__spacer"></div>
+      <span class="filter-bar__count">{{ filteredTeamVelocities().length }} of {{ teamVelocities().length }} shown</span>
+    </div>
+
     <div class="card table-card">
       @if (teamLoading()) {
         <div class="state state--loading">Loading team velocities...</div>
@@ -113,6 +180,11 @@
         <div class="state state--empty">
           <p>No team velocity calculations yet.</p>
           <button class="btn btn-primary" type="button" (click)="openCreateTeamDialog()">+ New Calculation</button>
+        </div>
+      } @else if (filteredTeamVelocities().length === 0) {
+        <div class="state state--empty">
+          <p>No team calculations for that month: {{ monthName(selectedMonth()) }} {{ selectedYear() }}.</p>
+          <p style="font-size:12px;color:var(--color-text-muted);">Team velocities from other periods are hidden. Change the month or year to see them.</p>
         </div>
       } @else {
         <table class="table">
@@ -128,7 +200,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (tv of teamVelocities(); track tv.id) {
+            @for (tv of filteredTeamVelocities(); track tv.id) {
               <tr>
                 <td>{{ tv.teamName }}</td>
                 <td class="figure">{{ tv.year }}</td>

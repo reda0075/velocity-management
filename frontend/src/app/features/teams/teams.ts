@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, computed, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TeamApi } from '../../core/services/team-api';
 import { Team } from '../../core/models/team';
@@ -24,6 +24,21 @@ export class Teams implements OnInit {
   teams = signal<Team[]>([]);
   loading = signal(true);
   loadError = signal<string | null>(null);
+
+  searchText = signal('');
+  selectedStatus = signal<string>('ALL');
+
+  readonly statusOptions = ['ALL', 'ACTIVE', 'INACTIVE'];
+
+  readonly filteredTeams = computed(() => {
+    const q = this.searchText().trim().toLowerCase();
+    return this.teams().filter(t => {
+      if (this.selectedStatus() === 'ACTIVE' && !t.active) return false;
+      if (this.selectedStatus() === 'INACTIVE' && t.active) return false;
+      if (q && !t.name.toLowerCase().includes(q) && !(t.description ?? '').toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
 
   showFormDialog = signal(false);
   editingTeam = signal<Team | null>(null);

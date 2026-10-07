@@ -7,6 +7,48 @@
     <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Collaborator</button>
   </div>
 
+  <div class="filter-bar">
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="collab-search">Search</label>
+      <input id="collab-search" class="filter-bar__input" type="text"
+             [value]="searchText()"
+             (input)="searchText.set($any($event.target).value)"
+             placeholder="Name or matricule…" />
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="collab-profile">Profile</label>
+      <select id="collab-profile" class="filter-bar__select" (change)="selectedProfile.set($any($event.target).value)">
+        @for (p of profiles; track p) {
+          <option [value]="p" [selected]="selectedProfile() === p">{{ p }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="collab-team">Team</label>
+      <select id="collab-team" class="filter-bar__select" (change)="selectedTeam.set($any($event.target).value)">
+        <option value="ALL" [selected]="selectedTeam() === 'ALL'">All teams</option>
+        @for (t of teamOptions(); track t) {
+          <option [value]="t" [selected]="selectedTeam() === t">{{ t }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="collab-status">Status</label>
+      <select id="collab-status" class="filter-bar__select" (change)="selectedStatus.set($any($event.target).value)">
+        @for (s of statusOptions; track s) {
+          <option [value]="s" [selected]="selectedStatus() === s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__spacer"></div>
+
+    <span class="filter-bar__count">{{ filteredCollaborators().length }} of {{ collaborators().length }} shown</span>
+  </div>
+
   <div class="card table-card">
     @if (loading()) {
       <div class="state state--loading">Loading collaborators...</div>
@@ -34,35 +76,44 @@
           </tr>
         </thead>
         <tbody>
-          @for (c of collaborators(); track c.id) {
+          @if (filteredCollaborators().length === 0) {
             <tr>
-              <td class="figure">{{ c.matricule }}</td>
-              <td>{{ c.firstName }}</td>
-              <td>{{ c.lastName }}</td>
-              <td>{{ c.profile }}</td>
-              <td>{{ c.teamName || 'Unassigned' }}</td>
-              <td>
-                @if (c.active) {
-                  <span class="badge badge-success">Active</span>
-                } @else {
-                  <span class="badge badge-danger">Inactive</span>
-                }
-              </td>
-              <td class="table__actions-cell">
-                <button class="menu-trigger" type="button" (click)="toggleMenu(c.id)">⋮</button>
-                @if (openMenuId() === c.id) {
-                  <div class="menu">
-                    <button type="button" (click)="openEditDialog(c)">Edit</button>
-                    @if (c.active) {
-                      <button type="button" (click)="askDeactivate(c)">Deactivate</button>
-                    } @else {
-                      <button type="button" (click)="activate(c)">Activate</button>
-                    }
-                    <button type="button" class="menu__danger" (click)="askDelete(c)">Delete</button>
-                  </div>
-                }
+              <td colspan="7" class="state state--empty" style="padding: var(--space-4);">
+                No collaborators match the current filters.
               </td>
             </tr>
+          } @else {
+            @for (c of filteredCollaborators(); track c.id) {
+              <tr>
+                <td class="figure">{{ c.matricule }}</td>
+                <td>{{ c.firstName }}</td>
+                <td>{{ c.lastName }}</td>
+                <td>{{ c.profile }}</td>
+                <td>{{ c.teamName || 'Unassigned' }}</td>
+                <td>
+                  @if (c.active) {
+                    <span class="badge badge-success">Active</span>
+                  } @else {
+                    <span class="badge badge-danger">Inactive</span>
+                  }
+                </td>
+                <td class="table__actions-cell">
+                  <button class="menu-trigger" type="button" (click)="toggleMenu(c.id)">⋮</button>
+                  @if (openMenuId() === c.id) {
+                    <div class="menu">
+                      <button type="button" (click)="openEditDialog(c)">Edit</button>
+                      @if (c.active) {
+                        <button type="button" (click)="askDeactivate(c)">Deactivate</button>
+                      } @else {
+                        <button type="button" (click)="activate(c)">Activate</button>
+                      }
+                      <button type="button" (click)="openCredentials(c)">Credentials</button>
+                      <button type="button" class="menu__danger" (click)="askDelete(c)">Delete</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>
@@ -86,6 +137,42 @@
     (confirmed)="confirmDeactivate()"
     (cancelled)="deactivateTarget.set(null)"
   ></app-confirm-dialog>
+}
+
+@if (credentialsTarget(); as target) {
+  <app-modal title="Login credentials" (closed)="closeCredentials()">
+    <div class="credentials">
+      <p class="credentials__hint">
+        Matricule: <span class="figure">{{ target.matricule }}</span>
+      </p>
+
+      @if (credentialsLoading()) {
+        <div class="state state--loading">Loading credentials...</div>
+      } @else if (credentialsError()) {
+        <div class="state state--error">{{ credentialsError() }}</div>
+      } @else if (credentials(); as creds) {
+        <div class="credentials__row">
+          <span class="credentials__label">Username</span>
+          <code class="credentials__value">{{ creds.username }}</code>
+          <button class="btn btn-secondary" type="button" (click)="copyCredentials(creds.username, 'username')">
+            {{ copiedCredentialsField() === 'username' ? 'Copied' : 'Copy' }}
+          </button>
+        </div>
+
+        <div class="credentials__row">
+          <span class="credentials__label">Password</span>
+          <code class="credentials__value">{{ creds.temporaryPassword }}</code>
+          <button class="btn btn-secondary" type="button" (click)="copyCredentials(creds.temporaryPassword, 'password')">
+            {{ copiedCredentialsField() === 'password' ? 'Copied' : 'Copy' }}
+          </button>
+        </div>
+      }
+
+      <div class="credentials__actions">
+        <button class="btn btn-primary" type="button" (click)="closeCredentials()">Close</button>
+      </div>
+    </div>
+  </app-modal>
 }
 
 @if (deleteTarget()) {

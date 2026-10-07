@@ -13,6 +13,7 @@ import { VelocityReportResponse } from '../../core/models/report';
 import { Velocity } from '../../core/models/velocity';
 import { TeamVelocity } from '../../core/models/team-velocity';
 import { extractErrorMessage } from '../../core/utils/http-error';
+import { currentMoroccoPeriod } from '../../core/utils/morocco-date';
 import { KpiCard } from './kpi-card';
 
 type DashboardState = 'loading' | 'empty' | 'error' | 'ready';
@@ -22,8 +23,11 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const CURRENT_YEAR = new Date().getFullYear();
-const CURRENT_MONTH = new Date().getMonth() + 1;
+// The dashboard always defaults to the current month in Morocco,
+// matching how velocity calculations are tracked.
+const CURRENT_PERIOD = currentMoroccoPeriod();
+const CURRENT_YEAR = CURRENT_PERIOD.year;
+const CURRENT_MONTH = CURRENT_PERIOD.month;
 
 @Component({
   selector: 'app-dashboard',

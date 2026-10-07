@@ -11,6 +11,7 @@ import { Collaborator } from '../../../core/models/collaborator';
 import { Ritual } from '../../../core/models/ritual';
 import { Toast } from '../../../core/services/toast';
 import { extractErrorMessage } from '../../../core/utils/http-error';
+import { currentMoroccoPeriod } from '../../../core/utils/morocco-date';
 
 @Component({
   selector: 'app-velocity-form-dialog',
@@ -32,6 +33,9 @@ export class VelocityFormDialog implements OnChanges {
   private ritualApi = inject(RitualApi);
   private toast = inject(Toast);
 
+  // New calculations default to the current month in Morocco.
+  private readonly defaultPeriod = currentMoroccoPeriod();
+
   submitting = signal(false);
   backendError = signal<string | null>(null);
 
@@ -41,8 +45,8 @@ export class VelocityFormDialog implements OnChanges {
 
   form: FormGroup = this.fb.group({
     collaboratorId: [null, [Validators.required]],
-    year: [new Date().getFullYear(), [Validators.required, Validators.min(2000)]],
-    month: [new Date().getMonth() + 1, [Validators.required, Validators.min(1), Validators.max(12)]],
+    year: [this.defaultPeriod.year, [Validators.required, Validators.min(2000)]],
+    month: [this.defaultPeriod.month, [Validators.required, Validators.min(1), Validators.max(12)]],
     workingDays: [null, [Validators.required, Validators.min(1)]],
     velocity: [null, [Validators.required, Validators.min(0.01)]]
   });
@@ -74,8 +78,8 @@ export class VelocityFormDialog implements OnChanges {
     } else {
       this.form.reset({
         collaboratorId: null,
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1,
+        year: this.defaultPeriod.year,
+        month: this.defaultPeriod.month,
         workingDays: null,
         velocity: null
       });

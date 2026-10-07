@@ -7,6 +7,7 @@ import { TeamApi } from '../../../core/services/team-api';
 import { Team } from '../../../core/models/team';
 import { Toast } from '../../../core/services/toast';
 import { extractErrorMessage } from '../../../core/utils/http-error';
+import { currentMoroccoPeriod } from '../../../core/utils/morocco-date';
 
 @Component({
   selector: 'app-team-velocity-form-dialog',
@@ -25,6 +26,9 @@ export class TeamVelocityFormDialog implements OnChanges {
   private teamApi = inject(TeamApi);
   private toast = inject(Toast);
 
+  // New team velocities default to the current month in Morocco.
+  private readonly defaultPeriod = currentMoroccoPeriod();
+
   submitting = signal(false);
   backendError = signal<string | null>(null);
 
@@ -33,8 +37,8 @@ export class TeamVelocityFormDialog implements OnChanges {
 
   form = this.fb.nonNullable.group({
     teamId: [null, [Validators.required]],
-    year: [new Date().getFullYear(), [Validators.required, Validators.min(2000)]],
-    month: [new Date().getMonth() + 1, [Validators.required, Validators.min(1), Validators.max(12)]]
+    year: [this.defaultPeriod.year, [Validators.required, Validators.min(2000)]],
+    month: [this.defaultPeriod.month, [Validators.required, Validators.min(1), Validators.max(12)]]
   });
 
   get isEditMode(): boolean {

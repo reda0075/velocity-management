@@ -7,6 +7,28 @@
     <button class="btn btn-primary" type="button" (click)="openCreateDialog()">+ Add Team</button>
   </div>
 
+  <div class="filter-bar">
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="team-search">Search</label>
+      <input id="team-search" class="filter-bar__input" type="text"
+             [value]="searchText()"
+             (input)="searchText.set($any($event.target).value)"
+             placeholder="Name or description…" />
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="team-status">Status</label>
+      <select id="team-status" class="filter-bar__select" (change)="selectedStatus.set($any($event.target).value)">
+        @for (s of statusOptions; track s) {
+          <option [value]="s" [selected]="selectedStatus() === s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__spacer"></div>
+    <span class="filter-bar__count">{{ filteredTeams().length }} of {{ teams().length }} shown</span>
+  </div>
+
   <div class="card table-card">
     @if (loading()) {
       <div class="state state--loading">Loading teams...</div>
@@ -31,33 +53,41 @@
           </tr>
         </thead>
         <tbody>
-          @for (team of teams(); track team.id) {
+          @if (filteredTeams().length === 0) {
             <tr>
-              <td>{{ team.name }}</td>
-              <td>{{ team.description }}</td>
-              <td>
-                @if (team.active) {
-                  <span class="badge badge-success">Active</span>
-                } @else {
-                  <span class="badge badge-danger">Inactive</span>
-                }
-              </td>
-              <td class="table__actions-cell">
-                <button class="menu-trigger" type="button" (click)="toggleMenu(team.id)">⋮</button>
-                @if (openMenuId() === team.id) {
-                  <div class="menu">
-                    <button type="button" (click)="openMembersDialog(team)">Manage Members</button>
-                    <button type="button" (click)="openEditDialog(team)">Edit</button>
-                    @if (team.active) {
-                      <button type="button" (click)="askDeactivate(team)">Deactivate</button>
-                    } @else {
-                      <button type="button" (click)="activate(team)">Activate</button>
-                    }
-                    <button type="button" class="menu__danger" (click)="askDelete(team)">Delete</button>
-                  </div>
-                }
+              <td colspan="4" class="state state--empty" style="padding: var(--space-4);">
+                No teams match the current filters.
               </td>
             </tr>
+          } @else {
+            @for (team of filteredTeams(); track team.id) {
+              <tr>
+                <td>{{ team.name }}</td>
+                <td>{{ team.description }}</td>
+                <td>
+                  @if (team.active) {
+                    <span class="badge badge-success">Active</span>
+                  } @else {
+                    <span class="badge badge-danger">Inactive</span>
+                  }
+                </td>
+                <td class="table__actions-cell">
+                  <button class="menu-trigger" type="button" (click)="toggleMenu(team.id)">⋮</button>
+                  @if (openMenuId() === team.id) {
+                    <div class="menu">
+                      <button type="button" (click)="openMembersDialog(team)">Manage Members</button>
+                      <button type="button" (click)="openEditDialog(team)">Edit</button>
+                      @if (team.active) {
+                        <button type="button" (click)="askDeactivate(team)">Deactivate</button>
+                      } @else {
+                        <button type="button" (click)="activate(team)">Activate</button>
+                      }
+                      <button type="button" class="menu__danger" (click)="askDelete(team)">Delete</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>

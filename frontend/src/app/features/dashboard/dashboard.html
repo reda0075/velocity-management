@@ -42,12 +42,11 @@
       <div class="filter-card__row">
         <div class="field">
           <label class="field__label" for="team-select">Team</label>
-          <select id="team-select" class="field__input" (change)="selectTeam($any($event.target).value)">
-            <option [value]="" [selected]="selectedTeamId() === null">All teams</option>
-            @for (team of teams(); track team.id) {
-              <option [value]="team.id" [selected]="selectedTeamId() === team.id">{{ team.name }}</option>
-            }
-          </select>
+<select id="team-select" class="field__input" (change)="selectTeam($any($event.target).value)">
+          @for (team of teams(); track team.id) {
+            <option [value]="team.id" [selected]="selectedTeamId() === team.id">{{ team.name }}</option>
+          }
+        </select>
         </div>
 
         <div class="field">

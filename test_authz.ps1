@@ -1,4 +1,4 @@
-$base = "http://localhost:8080"
+    $base = "http://localhost:8080"
 
 $loginBody = @{username='collab'; password='collab123'} | ConvertTo-Json
 $loginResp = Invoke-RestMethod -Uri "$base/api/auth/login" -Method Post -Body $loginBody -ContentType 'application/json'

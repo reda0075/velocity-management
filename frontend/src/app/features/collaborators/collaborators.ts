@@ -1,16 +1,17 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CollaboratorApi } from '../../core/services/collaborator-api';
-import { Collaborator } from '../../core/models/collaborator';
+import { Collaborator, CollaboratorCredentials } from '../../core/models/collaborator';
 import { Toast } from '../../core/services/toast';
 import { extractErrorMessage } from '../../core/utils/http-error';
 import { CollaboratorFormDialog } from './collaborator-form-dialog/collaborator-form-dialog';
 import { ConfirmDialog } from '../../shared/dialogs/confirm-dialog/confirm-dialog';
+import { Modal } from '../../shared/ui/modal/modal';
 
 @Component({
   selector: 'app-collaborators',
   standalone: true,
-  imports: [CollaboratorFormDialog, ConfirmDialog],
+  imports: [CollaboratorFormDialog, ConfirmDialog, Modal],
   templateUrl: './collaborators.html',
   styleUrl: './collaborators.scss'
 })
@@ -22,11 +23,49 @@ export class Collaborators implements OnInit {
   loading = signal(true);
   loadError = signal<string | null>(null);
 
+  searchText = signal('');
+  selectedProfile = signal<string>('ALL');
+  selectedTeam = signal<string>('ALL');
+  selectedStatus = signal<string>('ALL');
+
+  readonly profiles = ['ALL', 'DEV', 'DEVOPS', 'QA'];
+
+  private readonly UNASSIGNED_TEAM = 'Unassigned';
+
+  readonly filteredCollaborators = computed(() => {
+    const q = this.searchText().trim().toLowerCase();
+    return this.collaborators().filter(c => {
+      if (this.selectedProfile() !== 'ALL' && c.profile !== this.selectedProfile()) return false;
+      if (this.selectedTeam() !== 'ALL' && (c.teamName ?? this.UNASSIGNED_TEAM) !== this.selectedTeam()) return false;
+      if (this.selectedStatus() === 'ACTIVE' && !c.active) return false;
+      if (this.selectedStatus() === 'INACTIVE' && c.active) return false;
+      if (q) {
+        const name = `${c.firstName} ${c.lastName}`.toLowerCase();
+        if (!name.includes(q) && !c.matricule.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  });
+
+  readonly teamOptions = computed(() => {
+    const teams = new Set<string>();
+    this.collaborators().forEach(c => teams.add(c.teamName ?? this.UNASSIGNED_TEAM));
+    return Array.from(teams).sort();
+  });
+
+  readonly statusOptions = ['ALL', 'ACTIVE', 'INACTIVE'];
+
   showFormDialog = signal(false);
   editingCollaborator = signal<Collaborator | null>(null);
   openMenuId = signal<number | null>(null);
   deactivateTarget = signal<Collaborator | null>(null);
   deleteTarget = signal<Collaborator | null>(null);
+
+  credentialsTarget = signal<Collaborator | null>(null);
+  credentials = signal<CollaboratorCredentials | null>(null);
+  credentialsLoading = signal(false);
+  credentialsError = signal<string | null>(null);
+  copiedCredentialsField = signal<'username' | 'password' | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -116,6 +155,46 @@ export class Collaborators implements OnInit {
   askDelete(c: Collaborator): void {
     this.closeMenu();
     this.deleteTarget.set(c);
+  }
+
+  openCredentials(c: Collaborator): void {
+    this.closeMenu();
+    this.credentialsTarget.set(c);
+    this.credentials.set(null);
+    this.credentialsError.set(null);
+    this.copiedCredentialsField.set(null);
+    this.credentialsLoading.set(true);
+
+    this.api.getCredentials(c.id).subscribe({
+      next: (credentials) => {
+        this.credentials.set(credentials);
+        this.credentialsLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.credentials.set(null);
+        this.credentialsError.set(extractErrorMessage(
+          err,
+          'Could not load the credentials for this collaborator.'
+        ));
+        this.credentialsLoading.set(false);
+      }
+    });
+  }
+
+  closeCredentials(): void {
+    this.credentialsTarget.set(null);
+    this.credentials.set(null);
+    this.credentialsError.set(null);
+  }
+
+  copyCredentials(value: string, field: 'username' | 'password'): void {
+    navigator.clipboard?.writeText(value).then(
+      () => {
+        this.copiedCredentialsField.set(field);
+        setTimeout(() => this.copiedCredentialsField.set(null), 2000);
+      },
+      () => this.toast.error('Could not copy to the clipboard.')
+    );
   }
 
   confirmDelete(): void {

@@ -28,3 +28,10 @@ export interface InitialCredentials {
 }
 
 export type CollaboratorCreated = Collaborator & { initialCredentials: InitialCredentials };
+
+// ADMIN-only view of an existing collaborator's login, from
+// GET /api/collaborators/{id}/credentials. Never present on list/detail responses.
+export interface CollaboratorCredentials {
+  username: string;
+  temporaryPassword: string;
+}

@@ -1,0 +1,148 @@
+<div class="page reporting">
+  <div class="page__header">
+    <div>
+      <h2>Reporting</h2>
+      <p class="page__description">
+        Velocity report for a team and period. All calculations come from the backend.
+      </p>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="report-team">Team</label>
+      <select id="report-team" class="filter-bar__select" (change)="selectTeam($any($event.target).value)">
+        @for (team of teams(); track team.id) {
+          <option [value]="team.id" [selected]="selectedTeamId() === team.id">{{ team.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="report-year">Year</label>
+      <select id="report-year" class="filter-bar__select" (change)="onYearChange($any($event.target).value)">
+        @for (year of years; track year) {
+          <option [value]="year" [selected]="selectedYear() === year">{{ year }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="report-month">Month</label>
+      <select id="report-month" class="filter-bar__select" (change)="onMonthChange($any($event.target).value)">
+        @for (month of months; track month; let i = $index) {
+          <option [value]="i + 1" [selected]="selectedMonth() === i + 1">{{ month }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-bar__group">
+      <label class="filter-bar__label" for="report-search">Search collaborator</label>
+      <input id="report-search" class="filter-bar__input" type="text"
+             [value]="searchText()"
+             (input)="onSearchInput($any($event.target).value)"
+             placeholder="Name, matricule or profile…" />
+    </div>
+
+    <div class="filter-bar__spacer"></div>
+
+    @if (searchText()) {
+      <button class="filter-bar__clear" type="button" (click)="clearSearch()">Clear search</button>
+    }
+  </div>
+
+  <div class="filter-bar__meta">
+    <span class="filter-bar__team">{{ selectedTeamName() }}</span>
+    <span class="filter-bar__period">{{ periodLabel() }}</span>
+    @if (searchText()) {
+      <span class="filter-bar__count">· {{ filteredCollaborators().length }} of {{ report()?.collaborators?.length ?? 0 }} rows</span>
+    }
+  </div>
+
+  @if (reportLoading()) {
+    <div class="state state--loading">Loading velocity report…</div>
+  } @else if (reportError()) {
+    <div class="state state--error">
+      <p>Could not load the velocity report for this team and period.</p>
+      <button class="btn btn-secondary" type="button" (click)="retryReport()">Retry</button>
+    </div>
+  } @else if (reportEmpty()) {
+    <div class="state state--empty">
+      <p>No velocity calculations exist for {{ selectedTeamName() }} in {{ periodLabel() }}.</p>
+    </div>
+  } @else {
+    <div class="kpi-grid">
+      <app-kpi-card label="Active team members" [value]="formatCount(teamMembers())" hint="In the selected team" />
+      <app-kpi-card label="Calculated members" [value]="formatCount(calculatedMembers())" hint="With a velocity entry" />
+      <app-kpi-card label="Missing calculations" [value]="formatCount(missingCalculations())" hint="Not yet calculated" />
+      <app-kpi-card label="Team velocity" [value]="formatRatio(teamVelocity())" hint="Sum of member velocities" />
+      <app-kpi-card label="Pending validations" [value]="formatCount(pendingValidations())" hint="Awaiting review" />
+      <app-kpi-card label="Validated velocities" [value]="formatCount(validatedVelocities())" hint="Confirmed" />
+    </div>
+
+    @if (hasCalculations()) {
+      <div class="card chart-card">
+        <div class="chart-card__title">Member velocity</div>
+        <div class="chart-card__bars">
+          @for (c of filteredCollaborators(); track c.collaboratorId) {
+            <div class="chart-card__bar-row">
+              <div class="chart-card__bar-label" title="{{ collaboratorDisplayName(c) }}">
+                {{ c.matricule }}
+              </div>
+              <div class="chart-card__bar-track">
+                <div
+                  class="chart-card__bar-fill"
+                  [style.width.%]="velocityBarWidth(c.velocity, velocityMax())"
+                ></div>
+              </div>
+              <div class="chart-card__bar-value">{{ formatRatio(c.velocity) }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="card table-card">
+      <div class="table-card__scroll">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Collaborator</th>
+              <th>Matricule</th>
+              <th>Profile</th>
+              <th>Velocity</th>
+              <th>Ritual time</th>
+              <th>Ritual days</th>
+              <th>Effective days</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (hasFilteredRows()) {
+              @for (c of filteredCollaborators(); track c.collaboratorId) {
+                <tr>
+                  <td>{{ collaboratorDisplayName(c) }}</td>
+                  <td class="figure">{{ c.matricule }}</td>
+                  <td>{{ c.profile }}</td>
+                  <td class="figure">{{ formatRatio(c.velocity) }}</td>
+                  <td class="figure">{{ formatRatio(c.ritualTimeHours) }} h</td>
+                  <td class="figure">{{ formatRatio(c.ritualTimeDays) }}</td>
+                  <td class="figure">{{ formatRatio(c.effectiveWorkingDays) }}</td>
+                  <td>
+                    <span [class]="statusClass(c.status)">{{ statusLabel(c.status) }}</span>
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="8" class="state state--empty" style="padding: var(--space-4);">
+                  No collaborators match "{{ searchText() }}" in this team.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

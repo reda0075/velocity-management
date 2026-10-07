@@ -1,0 +1,204 @@
+.reporting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+// ---- Filter bar ----
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-4);
+}
+
+.filter-bar__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.filter-bar__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-bar__select,
+.filter-bar__input {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-surface);
+  min-width: 140px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+}
+
+.filter-bar__input {
+  min-width: 220px;
+}
+
+.filter-bar__spacer {
+  flex: 1;
+}
+
+.filter-bar__clear {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: var(--space-2) 0;
+
+  &:hover { color: var(--color-text); }
+}
+
+// ---- KPI grid ----
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
+// ---- Chart ----
+
+.chart-card {
+  padding: var(--space-4) var(--space-5);
+}
+
+.chart-card__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-3);
+}
+
+.chart-card__bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.chart-card__bar-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 56px;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.chart-card__bar-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-card__bar-track {
+  height: 12px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.chart-card__bar-fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+  transition: width 0.35s ease;
+}
+
+.chart-card__bar-value {
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// ---- Table ----
+
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-card__scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  background: var(--color-surface-2);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+// ---- States ----
+
+.state {
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+
+  &--error { color: var(--color-danger); }
+}
+
+// ---- Responsive ----
+
+@media (max-width: 768px) {
+  .chart-card__bar-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .chart-card__bar-value {
+    text-align: right;
+  }
+  .filter-bar__select,
+  .filter-bar__input {
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+}

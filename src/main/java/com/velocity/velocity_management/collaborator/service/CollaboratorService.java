@@ -3,8 +3,10 @@ package com.velocity.velocity_management.collaborator.service;
 import com.velocity.velocity_management.auth.entity.User;
 import com.velocity.velocity_management.auth.enums.Role;
 import com.velocity.velocity_management.auth.repository.UserRepository;
+import com.velocity.velocity_management.auth.security.CredentialEncryptionService;
 import com.velocity.velocity_management.collaborator.dto.request.CreateCollaboratorRequest;
 import com.velocity.velocity_management.collaborator.dto.request.UpdateCollaboratorRequest;
+import com.velocity.velocity_management.collaborator.dto.response.CollaboratorCredentialsResponse;
 import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
 import com.velocity.velocity_management.collaborator.dto.response.InitialCredentials;
 import com.velocity.velocity_management.collaborator.entity.Collaborator;
@@ -28,14 +30,16 @@ public class CollaboratorService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final InitialCredentialsGenerator initialCredentialsGenerator;
+    private final CredentialEncryptionService credentialEncryptionService;
 
-    public CollaboratorService(CollaboratorRepository collaboratorRepository, CollaboratorMapper collaboratorMapper, TeamRepository teamRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, InitialCredentialsGenerator initialCredentialsGenerator) {
+    public CollaboratorService(CollaboratorRepository collaboratorRepository, CollaboratorMapper collaboratorMapper, TeamRepository teamRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, InitialCredentialsGenerator initialCredentialsGenerator, CredentialEncryptionService credentialEncryptionService) {
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.initialCredentialsGenerator = initialCredentialsGenerator;
+        this.credentialEncryptionService = credentialEncryptionService;
     }
 
     @Transactional
@@ -67,6 +71,8 @@ public class CollaboratorService {
                 User user = new User();
                 user.setUsername(credentials.username());
                 user.setPassword(passwordEncoder.encode(credentials.temporaryPassword()));
+                user.setEncryptedInitialPassword(credentialEncryptionService.encrypt(
+                        credentials.temporaryPassword(), credentials.username()));
                 user.setRole(Role.COLLABORATOR);
                 collaborator.setUser(userRepository.save(user));
 
@@ -121,8 +127,35 @@ public class CollaboratorService {
                         .orElseThrow(() ->
                                 new ResourceNotFoundException("Collaborator with ID " + id + " not found"));
 
-                return collaboratorMapper.toResponse(collaborator);
+return collaboratorMapper.toResponse(collaborator);
             }
+
+    /**
+     * Decrypts the initial password issued when the collaborator was created, so an
+     * administrator can display it again. The password is not re-derived and never reset:
+     * a collaborator created before this value was kept has nothing to return.
+     */
+    @Transactional(readOnly = true)
+    public CollaboratorCredentialsResponse getInitialCredentials(Long id) {
+
+        Collaborator collaborator = collaboratorRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Collaborator with ID " + id + " not found"));
+
+        User user = collaborator.getUser();
+
+        if (user == null || user.getEncryptedInitialPassword() == null) {
+            throw new ResourceNotFoundException(
+                    "No recoverable initial credentials for collaborator with ID " + id
+                            + ". The password was never stored in a retrievable form and cannot be reconstructed.");
+        }
+
+        return new CollaboratorCredentialsResponse(
+                user.getUsername(),
+                credentialEncryptionService.decrypt(
+                        user.getEncryptedInitialPassword(), user.getUsername()));
+    }
 
     @Transactional(readOnly = true)
     public CollaboratorResponse getOwnProfile(String username) {

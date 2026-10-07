@@ -2,6 +2,7 @@ package com.velocity.velocity_management.collaborator.controller;
 
 import com.velocity.velocity_management.collaborator.dto.request.CreateCollaboratorRequest;
 import com.velocity.velocity_management.collaborator.dto.request.UpdateCollaboratorRequest;
+import com.velocity.velocity_management.collaborator.dto.response.CollaboratorCredentialsResponse;
 import com.velocity.velocity_management.collaborator.dto.response.CollaboratorResponse;
 import com.velocity.velocity_management.collaborator.service.CollaboratorService;
 import jakarta.validation.Valid;
@@ -46,6 +47,12 @@ public class CollaboratorController {
 
         return collaboratorService.getCollaboratorById(id);
 
+    }
+
+    @GetMapping("/{id}/credentials")
+    public CollaboratorCredentialsResponse getCredentials(@PathVariable Long id) {
+
+        return collaboratorService.getInitialCredentials(id);
     }
 
     @PutMapping("/{id}")
