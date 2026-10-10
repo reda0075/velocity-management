@@ -1,11 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { finalize } from 'rxjs';
 import { TeamApi } from '../../core/services/team-api';
 import { ReportingApi } from '../../core/services/reporting-api';
+import { Toast } from '../../core/services/toast';
 import { Team } from '../../core/models/team';
 import { VelocityReportResponse } from '../../core/models/report';
 import { KpiCard } from '../dashboard/kpi-card';
 import { currentMoroccoPeriod } from '../../core/utils/morocco-date';
+import { extractErrorMessage } from '../../core/utils/http-error';
 
 type ReportState = 'loading' | 'empty' | 'error' | 'ready';
 
@@ -30,6 +33,7 @@ const CURRENT_MONTH = CURRENT_PERIOD.month;
 export class Reporting {
   private teamApi = inject(TeamApi);
   private reportingApi = inject(ReportingApi);
+  private toast = inject(Toast);
 
   readonly months = MONTHS;
   readonly years = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
@@ -42,6 +46,7 @@ export class Reporting {
 
   report = signal<VelocityReportResponse | null>(null);
   reportState = signal<ReportState>('loading');
+  exporting = signal(false);
 
   readonly reportLoading = computed(() => this.reportState() === 'loading');
   readonly reportEmpty = computed(() => this.reportState() === 'empty');
@@ -148,6 +153,69 @@ export class Reporting {
 
   retryReport(): void {
     this.loadReport();
+  }
+
+  readonly canExport = computed(
+    () => this.selectedTeamId() != null && !this.exporting()
+  );
+
+  exportExcel(): void {
+    const teamId = this.selectedTeamId();
+    if (teamId == null || this.exporting()) {
+      return;
+    }
+
+    this.exporting.set(true);
+    this.reportingApi
+      .exportVelocityReportExcel(teamId, this.selectedYear(), this.selectedMonth())
+      // An errored observable never reaches `complete`, so the
+      // loading flag must be cleared in a finalizer.
+      .pipe(finalize(() => this.exporting.set(false)))
+      .subscribe({
+        next: (blob) => this.downloadExcel(blob),
+        error: (err: HttpErrorResponse) => {
+          // 401 is also handled globally by the auth interceptor
+          // (logout + redirect to /login); the toast explains why.
+          // Blob downloads cannot surface the backend error body,
+          // so the status drives the message.
+          if (err.status === 401) {
+            this.toast.error('Session expired. Log in again to export the report.');
+          } else if (err.status === 0) {
+            this.toast.error('Could not reach the server. Is the backend running?');
+          } else {
+            this.toast.error(
+              extractErrorMessage(err, 'Could not export the Excel report.')
+            );
+          }
+        }
+      });
+  }
+
+  private downloadExcel(blob: Blob): void {
+    const filename = this.excelFilename();
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+    this.toast.success(`Downloaded ${filename}`);
+  }
+
+  private excelFilename(): string {
+    const slug =
+      this.selectedTeamName()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'team';
+
+    const month = String(this.selectedMonth()).padStart(2, '0');
+
+    return `velocity-report-${slug}-${this.selectedYear()}-${month}.xlsx`;
   }
 
   monthName(month: number): string {

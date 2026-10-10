@@ -64,6 +64,28 @@
   &:hover { color: var(--color-text); }
 }
 
+.filter-bar__export {
+  align-self: flex-end;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.filter-bar__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: report-export-spin 0.7s linear infinite;
+}
+
+@keyframes report-export-spin {
+  to { transform: rotate(360deg); }
+}
+
 // ---- KPI grid ----
 
 .kpi-grid {

@@ -46,6 +46,17 @@
 
     <div class="filter-bar__spacer"></div>
 
+    <button class="btn btn-secondary filter-bar__export" type="button"
+            [disabled]="!canExport()"
+            (click)="exportExcel()">
+      @if (exporting()) {
+        <span class="filter-bar__spinner" aria-hidden="true"></span>
+        Exporting…
+      } @else {
+        Export Excel
+      }
+    </button>
+
     @if (searchText()) {
       <button class="filter-bar__clear" type="button" (click)="clearSearch()">Clear search</button>
     }

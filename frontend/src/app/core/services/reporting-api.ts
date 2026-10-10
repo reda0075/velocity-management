@@ -14,4 +14,12 @@ export class ReportingApi {
       params: { teamId: String(teamId), year: String(year), month: String(month) }
     });
   }
+
+  // The backend builds the workbook; the frontend only streams the file.
+  exportVelocityReportExcel(teamId: number, year: number, month: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/velocity/export/excel`, {
+      responseType: 'blob',
+      params: { teamId: String(teamId), year: String(year), month: String(month) }
+    });
+  }
 }
