@@ -4,6 +4,7 @@ import com.velocity.velocity_management.collaborator.dto.response.CollaboratorRe
 import com.velocity.velocity_management.collaborator.entity.Collaborator;
 import com.velocity.velocity_management.collaborator.mapper.CollaboratorMapper;
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
+import com.velocity.velocity_management.common.exception.DuplicateResourceException;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
 import com.velocity.velocity_management.team.dto.request.CreateTeamRequest;
 import com.velocity.velocity_management.team.dto.request.UpdateTeamMembersRequest;
@@ -46,7 +47,7 @@ public class TeamService {
     public TeamResponse createTeam(CreateTeamRequest request) {
 
         if (teamRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "A team with this name already exists"
             );
         }
@@ -173,7 +174,7 @@ public class TeamService {
         if (!team.getName().equals(request.getName())
                 && teamRepository.existsByName(request.getName())) {
 
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "A team with this name already exists"
             );
         }

@@ -1,5 +1,6 @@
 package com.velocity.velocity_management.ritual.service;
 
+import com.velocity.velocity_management.common.exception.DuplicateResourceException;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
 import com.velocity.velocity_management.ritual.dto.request.CreateRitualRequest;
 import com.velocity.velocity_management.ritual.dto.request.UpdateRitualRequest;
@@ -27,7 +28,7 @@ public class RitualService {
     public RitualResponse createRitual(CreateRitualRequest request) {
 
         if (ritualRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "A ritual with the name '" + request.getName() + "' already exists"
             );
         }

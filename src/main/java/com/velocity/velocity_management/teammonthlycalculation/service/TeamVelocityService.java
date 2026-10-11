@@ -2,6 +2,7 @@ package com.velocity.velocity_management.teammonthlycalculation.service;
 
 import com.velocity.velocity_management.collaborator.entity.Collaborator;
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
+import com.velocity.velocity_management.common.exception.DuplicateResourceException;
 import com.velocity.velocity_management.common.exception.ResourceNotFoundException;
 import com.velocity.velocity_management.monthlycalculation.entity.Velocity;
 import com.velocity.velocity_management.monthlycalculation.enums.VelocityStatus;
@@ -63,7 +64,7 @@ public class TeamVelocityService {
         if (teamVelocityRepository.existsByTeamIdAndYearAndMonth(
                 request.getTeamId(), request.getYear(), request.getMonth())) {
 
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "A team velocity calculation already exists for this team and month"
             );
         }
