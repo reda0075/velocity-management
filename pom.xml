@@ -102,12 +102,19 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Tests -->
+<!-- Tests -->
 <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.4.0</version>
-        </dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.4.0</version>
+</dependency>
+
+<!-- PDF generation (Apache 2.0-style copyleft-free licensing via LGPL/MPL) -->
+<dependency>
+    <groupId>com.github.librepdf</groupId>
+    <artifactId>openpdf</artifactId>
+    <version>1.3.30</version>
+</dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

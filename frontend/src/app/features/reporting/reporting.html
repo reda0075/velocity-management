@@ -47,13 +47,24 @@
     <div class="filter-bar__spacer"></div>
 
     <button class="btn btn-secondary filter-bar__export" type="button"
-            [disabled]="!canExport()"
+            [disabled]="!canExportExcel()"
             (click)="exportExcel()">
-      @if (exporting()) {
+      @if (exportingExcel()) {
         <span class="filter-bar__spinner" aria-hidden="true"></span>
         Exporting…
       } @else {
         Export Excel
+      }
+    </button>
+
+    <button class="btn btn-secondary filter-bar__export" type="button"
+            [disabled]="!canExportPdf()"
+            (click)="exportPdf()">
+      @if (exportingPdf()) {
+        <span class="filter-bar__spinner" aria-hidden="true"></span>
+        Exporting…
+      } @else {
+        Export PDF
       }
     </button>
 

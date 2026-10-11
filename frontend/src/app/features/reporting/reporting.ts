@@ -1,6 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, WritableSignal, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs';
+import { Observable, finalize } from 'rxjs';
 import { TeamApi } from '../../core/services/team-api';
 import { ReportingApi } from '../../core/services/reporting-api';
 import { Toast } from '../../core/services/toast';
@@ -46,7 +46,8 @@ export class Reporting {
 
   report = signal<VelocityReportResponse | null>(null);
   reportState = signal<ReportState>('loading');
-  exporting = signal(false);
+  exportingExcel = signal(false);
+  exportingPdf = signal(false);
 
   readonly reportLoading = computed(() => this.reportState() === 'loading');
   readonly reportEmpty = computed(() => this.reportState() === 'empty');
@@ -155,24 +156,50 @@ export class Reporting {
     this.loadReport();
   }
 
-  readonly canExport = computed(
-    () => this.selectedTeamId() != null && !this.exporting()
+  readonly canExportExcel = computed(
+    () => this.selectedTeamId() != null && !this.exportingExcel()
+  );
+
+  readonly canExportPdf = computed(
+    () => this.selectedTeamId() != null && !this.exportingPdf()
   );
 
   exportExcel(): void {
+    this.downloadReport(
+      'xlsx',
+      this.exportingExcel,
+      (teamId, year, month) =>
+        this.reportingApi.exportVelocityReportExcel(teamId, year, month)
+    );
+  }
+
+  exportPdf(): void {
+    this.downloadReport(
+      'pdf',
+      this.exportingPdf,
+      (teamId, year, month) =>
+        this.reportingApi.exportVelocityReportPdf(teamId, year, month)
+    );
+  }
+
+  private downloadReport(
+    extension: 'xlsx' | 'pdf',
+    exporting: WritableSignal<boolean>,
+    call: (teamId: number, year: number, month: number) => Observable<Blob>
+  ): void {
+
     const teamId = this.selectedTeamId();
-    if (teamId == null || this.exporting()) {
+    if (teamId == null || exporting()) {
       return;
     }
 
-    this.exporting.set(true);
-    this.reportingApi
-      .exportVelocityReportExcel(teamId, this.selectedYear(), this.selectedMonth())
+    exporting.set(true);
+    call(teamId, this.selectedYear(), this.selectedMonth())
       // An errored observable never reaches `complete`, so the
       // loading flag must be cleared in a finalizer.
-      .pipe(finalize(() => this.exporting.set(false)))
+      .pipe(finalize(() => exporting.set(false)))
       .subscribe({
-        next: (blob) => this.downloadExcel(blob),
+        next: (blob) => this.downloadBlob(blob, extension),
         error: (err: HttpErrorResponse) => {
           // 401 is also handled globally by the auth interceptor
           // (logout + redirect to /login); the toast explains why.
@@ -184,15 +211,15 @@ export class Reporting {
             this.toast.error('Could not reach the server. Is the backend running?');
           } else {
             this.toast.error(
-              extractErrorMessage(err, 'Could not export the Excel report.')
+              extractErrorMessage(err, `Could not export the ${extension} report.`)
             );
           }
         }
       });
   }
 
-  private downloadExcel(blob: Blob): void {
-    const filename = this.excelFilename();
+  private downloadBlob(blob: Blob, extension: 'xlsx' | 'pdf'): void {
+    const filename = this.exportFilename(extension);
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
@@ -206,7 +233,7 @@ export class Reporting {
     this.toast.success(`Downloaded ${filename}`);
   }
 
-  private excelFilename(): string {
+  private exportFilename(extension: 'xlsx' | 'pdf'): string {
     const slug =
       this.selectedTeamName()
         .toLowerCase()
@@ -215,7 +242,7 @@ export class Reporting {
 
     const month = String(this.selectedMonth()).padStart(2, '0');
 
-    return `velocity-report-${slug}-${this.selectedYear()}-${month}.xlsx`;
+    return `velocity-report-${slug}-${this.selectedYear()}-${month}.${extension}`;
   }
 
   monthName(month: number): string {

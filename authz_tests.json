@@ -129,6 +129,13 @@
     {
       "role": "COLLABORATOR",
       "method": "GET",
+      "url": "/api/reports/velocity/export/pdf?teamId=1&year=2026&month=9",
+      "body": {},
+      "expect": 403
+    },
+    {
+      "role": "COLLABORATOR",
+      "method": "GET",
       "url": "/api/teams",
       "body": {},
       "expect": 200
@@ -184,6 +191,13 @@
     },
     {
       "role": "ADMIN",
+      "method": "GET",
+      "url": "/api/reports/velocity/export/pdf?teamId=1&year=2026&month=9",
+      "body": {},
+      "expect": 200
+    },
+    {
+      "role": "ADMIN",
       "method": "POST",
       "url": "/api/rituals",
       "body": {"name": "R"},
@@ -214,6 +228,13 @@
       "role": "ANON",
       "method": "GET",
       "url": "/api/reports/velocity/export/excel?teamId=1&year=2026&month=9",
+      "body": {},
+      "expect": 401
+    },
+    {
+      "role": "ANON",
+      "method": "GET",
+      "url": "/api/reports/velocity/export/pdf?teamId=1&year=2026&month=9",
       "body": {},
       "expect": 401
     }

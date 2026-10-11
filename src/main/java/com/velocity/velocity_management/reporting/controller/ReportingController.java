@@ -2,6 +2,7 @@ package com.velocity.velocity_management.reporting.controller;
 
 import com.velocity.velocity_management.reporting.dto.response.VelocityReportResponse;
 import com.velocity.velocity_management.reporting.excel.VelocityReportExcelExporter;
+import com.velocity.velocity_management.reporting.pdf.VelocityReportPdfExporter;
 import com.velocity.velocity_management.reporting.service.ReportingService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,15 +20,21 @@ public class ReportingController {
             MediaType.parseMediaType(
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
+    private static final MediaType PDF_MEDIA_TYPE =
+            MediaType.parseMediaType("application/pdf");
+
     private final ReportingService reportingService;
     private final VelocityReportExcelExporter excelExporter;
+    private final VelocityReportPdfExporter pdfExporter;
 
     public ReportingController(
             ReportingService reportingService,
-            VelocityReportExcelExporter excelExporter) {
+            VelocityReportExcelExporter excelExporter,
+            VelocityReportPdfExporter pdfExporter) {
 
         this.reportingService = reportingService;
         this.excelExporter = excelExporter;
+        this.pdfExporter = pdfExporter;
     }
 
     @GetMapping("/velocity")
@@ -70,6 +77,30 @@ public class ReportingController {
                 .body(excel);
     }
 
+    @GetMapping("/velocity/export/pdf")
+    public ResponseEntity<byte[]> exportVelocityReportPdf(
+            @RequestParam("teamId") Long teamId,
+            @RequestParam("year") Integer year,
+            @RequestParam("month") Integer month) {
+
+        // The report is calculated by the same service as the JSON endpoint:
+        // this endpoint only renders the result as a PDF document.
+        VelocityReportResponse report =
+                reportingService.generateVelocityReport(
+                        teamId,
+                        year,
+                        month
+                );
+
+        byte[] pdf = pdfExporter.export(report);
+
+        return ResponseEntity.ok()
+                .contentType(PDF_MEDIA_TYPE)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + pdfFilename(report) + "\"")
+                .body(pdf);
+    }
+
     private String excelFilename(VelocityReportResponse report) {
 
         String team = report.getTeamName() == null
@@ -77,5 +108,14 @@ public class ReportingController {
                 : report.getTeamName().replaceAll("[^a-zA-Z0-9_-]", "-");
 
         return "velocity-report-" + team + "-" + report.getYear() + "-" + report.getMonth() + ".xlsx";
+    }
+
+    private String pdfFilename(VelocityReportResponse report) {
+
+        String team = report.getTeamName() == null
+                ? "team"
+                : report.getTeamName().replaceAll("[^a-zA-Z0-9_-]", "-");
+
+        return "velocity-report-" + team + "-" + report.getYear() + "-" + report.getMonth() + ".pdf";
     }
 }
