@@ -1,4 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://velocity-management-1.onrender.com' // update when a real backend URL exists
+  // Same origin: the production deployment serves the API through a
+  // reverse proxy (see frontend/nginx.conf). For a separate backend
+  // host, set the URL here at build time.
+  apiUrl: ''
 };

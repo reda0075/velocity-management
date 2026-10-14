@@ -10,6 +10,10 @@
           DB_URL: ${DB_URL}
           DB_USERNAME: ${DB_USERNAME}
           DB_PASSWORD: ${DB_PASSWORD}
+          # Both are mandatory: the application refuses to start
+          # when either is missing. Values come from the .env file.
+          JWT_SECRET: ${JWT_SECRET}
+          APP_CREDENTIAL_ENCRYPTION_KEY: ${APP_CREDENTIAL_ENCRYPTION_KEY}
           SPRING_PROFILES_ACTIVE: docker
       extra_hosts:
         - "host.docker.internal:host-gateway"
