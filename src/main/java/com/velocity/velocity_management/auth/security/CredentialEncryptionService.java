@@ -48,6 +48,12 @@ public class CredentialEncryptionService {
                             + "APP_CREDENTIAL_ENCRYPTION_KEY). Without it an administrator cannot "
                             + "retrieve the initial passwords issued at collaborator creation.");
         }
+        if (secret.length() < 16) {
+            throw new IllegalStateException(
+                    "app.credentials.encryption-key (APP_CREDENTIAL_ENCRYPTION_KEY) is too short: "
+                            + "expected at least 16 characters, got " + secret.length() + ". "
+                            + "Generate a strong key with: openssl rand -base64 32");
+        }
         this.encryptionKey = deriveKey(secret);
     }
 

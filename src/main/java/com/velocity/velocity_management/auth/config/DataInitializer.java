@@ -7,6 +7,8 @@ import com.velocity.velocity_management.collaborator.entity.Collaborator;
 import com.velocity.velocity_management.collaborator.enums.Profile;
 import com.velocity.velocity_management.collaborator.repository.CollaboratorRepository;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 
 @Component
 public class DataInitializer {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private final UserRepository userRepository;
     private final CollaboratorRepository collaboratorRepository;
@@ -31,14 +35,27 @@ public class DataInitializer {
 
     @PostConstruct
     public void init() {
+        try {
+            seedAdminUser();
+            seedCollaboratorUser();
+        } catch (Throwable e) {
+            log.error("FATAL: DataInitializer failed to seed default users", e);
+            throw new RuntimeException("DataInitializer failed", e);
+        }
+    }
+
+    private void seedAdminUser() {
         if (userRepository.findByUsername("admin").isEmpty()) {
             User admin = new User();
             admin.setUsername("admin");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(Role.ADMIN);
             userRepository.save(admin);
+            log.info("Seeded default ADMIN user 'admin'");
         }
+    }
 
+    private void seedCollaboratorUser() {
         User collaboratorUser = userRepository.findByUsername("collaborator").orElse(null);
         if (collaboratorUser == null) {
             collaboratorUser = new User();
@@ -59,6 +76,7 @@ public class DataInitializer {
             collaboratorProfile.setUpdatedAt(LocalDateTime.now());
             collaboratorProfile.setUser(collaboratorUser);
             collaboratorRepository.save(collaboratorProfile);
+            log.info("Seeded default COLLABORATOR user 'collaborator'");
         }
     }
 }
