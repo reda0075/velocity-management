@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +28,8 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -66,6 +71,7 @@ public class AuthController {
 
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException ex) {
+            log.warn("Login failed for user '{}': bad credentials", request.getUsername());
             ApiError error = new ApiError(
                     LocalDateTime.now(),
                     HttpStatus.UNAUTHORIZED.value(),
@@ -73,6 +79,24 @@ public class AuthController {
                     Collections.emptyMap()
             );
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        } catch (AuthenticationException ex) {
+            log.warn("Authentication failed for user '{}'", request.getUsername(), ex);
+            ApiError error = new ApiError(
+                    LocalDateTime.now(),
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Invalid username or password",
+                    Collections.emptyMap()
+            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        } catch (Exception ex) {
+            log.error("Unexpected error during login for user '{}'", request.getUsername(), ex);
+            ApiError error = new ApiError(
+                    LocalDateTime.now(),
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Login failed due to a server error",
+                    Collections.emptyMap()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 }

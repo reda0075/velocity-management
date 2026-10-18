@@ -32,5 +32,5 @@ export function extractErrorMessage(err: HttpErrorResponse, fallback: string): s
     return 'Could not reach the server. Is the backend running?';
   }
 
-  return fallback;
+  return err.status ? `${fallback} (HTTP ${err.status})` : fallback;
 }

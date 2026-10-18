@@ -35,6 +35,7 @@ public class DataInitializer {
 
     @PostConstruct
     public void init() {
+        log.info("Seeding users... users before: {}", userRepository.count());
         try {
             seedAdminUser();
             seedCollaboratorUser();
@@ -42,6 +43,7 @@ public class DataInitializer {
             log.error("FATAL: DataInitializer failed to seed default users", e);
             throw new RuntimeException("DataInitializer failed", e);
         }
+        log.info("Seeding users... users after: {}", userRepository.count());
     }
 
     private void seedAdminUser() {
