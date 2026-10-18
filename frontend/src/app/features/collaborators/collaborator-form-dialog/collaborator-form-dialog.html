@@ -4,16 +4,8 @@
       <p class="credentials__title">Collaborator created successfully</p>
       <p class="credentials__hint">Copy these credentials now. The password is never shown again.</p>
 
-      <div class="credentials__row">
-        <span class="credentials__label">Matricule</span>
-        <code class="credentials__value">{{ creds.matricule }}</code>
-        <button class="btn btn-secondary" type="button" (click)="copy(creds.matricule, 'matricule')">
-          {{ copiedField() === 'matricule' ? 'Copied' : 'Copy' }}
-        </button>
-      </div>
-
-      <div class="credentials__row">
-        <span class="credentials__label">Username</span>
+       <div class="credentials__row">
+         <span class="credentials__label">Username</span>
         <code class="credentials__value">{{ creds.username }}</code>
         <button class="btn btn-secondary" type="button" (click)="copy(creds.username, 'username')">
           {{ copiedField() === 'username' ? 'Copied' : 'Copy' }}
